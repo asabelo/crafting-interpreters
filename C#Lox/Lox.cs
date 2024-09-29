@@ -1,4 +1,6 @@
-﻿switch (args.Length)
+﻿bool hadError = false;
+
+switch (args.Length)
 {
     case > 1:
         Console.WriteLine("Usage: c#lox [script]");
@@ -18,7 +20,13 @@
 async Task RunFile(string filePath)
 {
     var code = await File.ReadAllTextAsync(filePath);
+    
     Run(code);
+
+    if (hadError)
+    {
+        Environment.Exit(65);
+    }
 }
 
 // Start a REPL
@@ -39,6 +47,8 @@ void RunPrompt()
         else
         {
             Run(code);
+            
+            hadError = false;
         }
     }
 }
@@ -49,4 +59,16 @@ void Run(string code)
     {
         Console.WriteLine(token);
     }
+}
+
+async Task Error(int line, string message)
+{
+    await Report(line, string.Empty, message);
+}
+
+// Helper function for error reporting
+/*private*/ async Task Report(int line, string where, string message)
+{
+    await Console.Error.WriteLineAsync($"[line {line}] Error{where}: {message}");
+    hadError = true;
 }
