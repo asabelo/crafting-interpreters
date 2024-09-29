@@ -3,25 +3,25 @@
 switch (args.Length)
 {
     case > 1:
-        Console.WriteLine("Usage: c#lox [script]");
+        await Console.Out.WriteLineAsync("Usage: c#lox [script]");
         Environment.Exit(64);
         break;
 
     case 1:
-        await RunFile(args[0]);
+        await RunFileAsync(args[0]);
         break;
 
     default:
-        RunPrompt();
+        await RunPromptAsync();
         break;
 }
 
 // Read and execute source file 
-async Task RunFile(string filePath)
+async Task RunFileAsync(string filePath)
 {
     var code = await File.ReadAllTextAsync(filePath);
     
-    Run(code);
+    await RunAsync(code);
 
     if (hadError)
     {
@@ -30,44 +30,40 @@ async Task RunFile(string filePath)
 }
 
 // Start a REPL
-void RunPrompt()
+async Task RunPromptAsync()
 {
     var keepGoing = true;
 
     while (keepGoing)
     {
-        Console.Write("> ");
+        await Console.Out.WriteAsync("> ");
 
-        var code = Console.ReadLine();
+        var code = await Console.In.ReadLineAsync();
 
-        if (code is null)
+        if (keepGoing = code is not null)
         {
-            keepGoing = false;
-        }
-        else
-        {
-            Run(code);
-            
+            await RunAsync(code!);
+
             hadError = false;
         }
     }
 }
 
-void Run(string code)
+async Task RunAsync(string code)
 {
-    foreach (var token in code.Split(' '))
+    foreach (var token in code.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
     {
-        Console.WriteLine(token);
+        await Console.Out.WriteLineAsync(token);
     }
 }
 
-async Task Error(int line, string message)
+async Task ErrorAsync(int line, string message)
 {
-    await Report(line, string.Empty, message);
+    await ReportAsync(line, string.Empty, message);
 }
 
 // Helper function for error reporting
-/*private*/ async Task Report(int line, string where, string message)
+/*private*/ async Task ReportAsync(int line, string where, string message)
 {
     await Console.Error.WriteLineAsync($"[line {line}] Error{where}: {message}");
     hadError = true;
