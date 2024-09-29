@@ -4,7 +4,7 @@ record Token
 (
     TokenType Type,
     string Lexeme,
-    object Literal,
+    object? Literal,
     int Line
 )
 {
