@@ -31,7 +31,9 @@ class Scanner
 
     private async Task ScanToken()
     {
-        switch (Advance())
+        char c = Advance();
+
+        switch (c)
         {
             case '(':
                 AddToken(TokenType.LEFT_PAREN);
@@ -118,9 +120,44 @@ class Scanner
                 break;
 
             default:
-                await Lox.ErrorAsync(line, "Unexpected character.");
+                if (IsDigit(c))
+                {
+                    ScanNumber();
+                }
+                else
+                {
+                    await Lox.ErrorAsync(line, "Unexpected character.");
+                }
                 break;
         }
+    }
+
+    private void ScanNumber()
+    {
+        while (IsDigit(Peek()))
+        {
+            _ = Advance();
+        }
+
+        // Look for a fractional part
+        if (Peek() == '.' && IsDigit(PeekNext()))
+        {
+            _ = Advance(); // consume the '.'
+
+            while (IsDigit(Peek()))
+            {
+                _ = Advance();
+            }
+        }
+
+        var doubleLiteral = double.Parse(source[start..current]);
+
+        AddToken(TokenType.NUMBER, doubleLiteral);
+    }
+
+    private static bool IsDigit(char c)
+    {
+        return c is >= '0' and <= '9';
     }
 
     private async Task ScanString()
@@ -143,7 +180,7 @@ class Scanner
 
         _ = Advance(); // Closing '"'
 
-        string stringLiteral = source[(start + 1)..(current - 1)];
+        var stringLiteral = source[(start + 1)..(current - 1)];
 
         AddToken(TokenType.STRING, stringLiteral);
     }
