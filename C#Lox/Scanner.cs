@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 namespace Lox;
 
@@ -88,10 +89,68 @@ class Scanner
                 AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
                 break;
 
+            case '/':
+                if (Match('/'))
+                {
+                    while (Peek() != '\n' && !IsAtEnd())
+                    {
+                        _ = Advance();
+                    }
+                }
+                else
+                {
+                    AddToken(TokenType.SLASH);
+                }
+                break;
+
+            case ' ':
+            case '\r':
+            case '\t':
+                // Ignore
+                break;
+
+            case '\n':
+                line++;
+                break;
+
+            case '"':
+                await ScanString();
+                break;
+
             default:
                 await Lox.ErrorAsync(line, "Unexpected character.");
                 break;
         }
+    }
+
+    private async Task ScanString()
+    {
+        while (Peek() != '"' && !IsAtEnd())
+        {
+            if (Peek() == '\n')
+            {
+                line++;
+            }
+
+            _ = Advance();
+        }
+
+        if (IsAtEnd())
+        {
+            await Lox.ErrorAsync(line, "Unterminated string.");
+            return;
+        }
+
+        _ = Advance(); // Closing '"'
+
+        string stringLiteral = source[(start + 1)..(current - 1)];
+
+        AddToken(TokenType.STRING, stringLiteral);
+    }
+
+    private char Peek()
+    {
+        return IsAtEnd() ? '\0' : source[current];
     }
 
     // Advance and return true if the next character from source equals expected.
