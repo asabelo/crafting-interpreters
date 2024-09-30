@@ -3,8 +3,28 @@ using System.Security.Cryptography;
 
 namespace Lox;
 
-class Scanner
+public class Scanner
 {
+    private static readonly Dictionary<string, TokenType> keywords = new()
+    {
+        { "and",    TokenType.AND    },
+        { "class",  TokenType.CLASS  },
+        { "else",   TokenType.ELSE   },
+        { "false",  TokenType.FALSE  },
+        { "for",    TokenType.FOR    },
+        { "fun",    TokenType.FUN    },
+        { "if",     TokenType.IF     },
+        { "nil",    TokenType.NIL    },
+        { "or",     TokenType.OR     },
+        { "print",  TokenType.PRINT  },
+        { "return", TokenType.RETURN },
+        { "super",  TokenType.SUPER  },
+        { "this",   TokenType.THIS   },
+        { "true",   TokenType.TRUE   },
+        { "var",    TokenType.VAR    },
+        { "while",  TokenType.WHILE  }
+    };
+    
     private readonly string source;
     private readonly List<Token> tokens = [];
 
@@ -12,12 +32,12 @@ class Scanner
     private int current = 0;
     private int line = 1;
 
-    Scanner(string source)
+    public Scanner(string source)
     {
         this.source = source;
     }
 
-    private async Task<List<Token>> ScanTokens()
+    public async Task<List<Token>> ScanTokens()
     {
         while (!IsAtEnd())
         {
@@ -124,12 +144,33 @@ class Scanner
                 {
                     ScanNumber();
                 }
+                else if (IsAlpha(c))
+                {
+                    ScanIdentifier();
+                }
                 else
                 {
                     await Lox.ErrorAsync(line, "Unexpected character.");
                 }
                 break;
         }
+    }
+
+    private void ScanIdentifier()
+    {
+        while (IsAlphanumeric(Peek()))
+        {
+            _ = Advance();
+        }
+
+        string text = source[start..current];
+        
+        if (!keywords.TryGetValue(text, out TokenType type))
+        {
+            type = TokenType.IDENTIFIER;
+        }
+
+        AddToken(type);
     }
 
     private void ScanNumber()
@@ -188,6 +229,30 @@ class Scanner
     private char Peek()
     {
         return IsAtEnd() ? '\0' : source[current];
+    }
+
+    private char PeekNext()
+    {
+        if (current + 1 >= source.Length)
+        {
+            return '\0';
+        }
+        else
+        {
+            return source[current + 1];
+        }
+    }
+
+    private static bool IsAlpha(char c)
+    {
+        return (c is >= 'a' and <= 'z')
+            || (c is >= 'A' and <= 'Z')
+            || c == '_';
+    }
+
+    private static bool IsAlphanumeric(char c)
+    {
+        return IsAlpha(c) || IsDigit(c);
     }
 
     // Advance and return true if the next character from source equals expected.

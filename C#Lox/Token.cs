@@ -1,6 +1,6 @@
 namespace Lox;
 
-record Token
+public record Token
 (
     TokenType Type,
     string Lexeme,

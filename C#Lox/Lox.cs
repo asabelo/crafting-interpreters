@@ -58,9 +58,12 @@ public static class Lox
 
     private static async Task RunAsync(string code)
     {
-        foreach (var token in code.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        var scanner = new Scanner(code);
+        var tokens = await scanner.ScanTokens();
+
+        foreach (var token in tokens)
         {
-            await Console.Out.WriteLineAsync(token);
+            await Console.Out.WriteLineAsync(token.ToString());
         }
     }
 
