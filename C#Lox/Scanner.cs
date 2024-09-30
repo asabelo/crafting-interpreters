@@ -16,37 +16,97 @@ class Scanner
         this.source = source;
     }
 
-    List<Token> ScanTokens()
+    private async Task<List<Token>> ScanTokens()
     {
         while (!IsAtEnd())
         {
             start = current;
-            ScanToken();
+            await ScanToken();
         }
 
         tokens.Add(new Token(TokenType.EOF, string.Empty, null, line));
         return tokens;
     }
 
-    private void ScanToken()
+    private async Task ScanToken()
     {
-        char c = Advance();
-
-        var tokenType = c switch
+        switch (Advance())
         {
-            '(' => TokenType.LEFT_PAREN,
-            ')' => TokenType.RIGHT_PAREN,
-            '{' => TokenType.LEFT_BRACE,
-            '}' => TokenType.RIGHT_BRACE,
-            ',' => TokenType.COMMA,
-            '.' => TokenType.DOT,
-            '-' => TokenType.MINUS,
-            '+' => TokenType.PLUS,
-            ';' => TokenType.SEMICOLON,
-            '*' => TokenType.STAR
-        };
+            case '(':
+                AddToken(TokenType.LEFT_PAREN);
+                break;
 
-        AddToken(tokenType);
+            case ')':
+                AddToken(TokenType.RIGHT_PAREN);
+                break;
+
+            case '{':
+                AddToken(TokenType.LEFT_BRACE);
+                break;
+
+            case '}':
+                AddToken(TokenType.RIGHT_BRACE);
+                break;
+
+            case ',':
+                AddToken(TokenType.COMMA);
+                break;
+
+            case '.':
+                AddToken(TokenType.DOT);
+                break;
+
+            case '-':
+                AddToken(TokenType.MINUS);
+                break;
+
+            case '+':
+                AddToken(TokenType.PLUS);
+                break;
+
+            case ';':
+                AddToken(TokenType.SEMICOLON);
+                break;
+
+            case '*':
+                AddToken(TokenType.STAR);
+                break;
+
+            case '!':
+                AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
+                break;
+
+            case '=':
+                AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
+                break;
+
+            case '<':
+                AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
+                break;
+
+            case '>':
+                AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+                break;
+
+            default:
+                await Lox.ErrorAsync(line, "Unexpected character.");
+                break;
+        }
+    }
+
+    // Advance and return true if the next character from source equals expected.
+    // Return false otherwise.
+    private bool Match(char expected)
+    {
+        if (IsAtEnd() || source[current] != expected)
+        {
+            return false;
+        }
+        else
+        {
+            current++;
+            return true;
+        }
     }
 
     private bool IsAtEnd()
