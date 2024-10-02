@@ -1,6 +1,3 @@
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-
 namespace Lox;
 
 public class Scanner
@@ -118,6 +115,20 @@ public class Scanner
                     {
                         _ = Advance();
                     }
+                }
+                else if (Match('*'))
+                {
+                    while (Peek() != '*' && PeekNext() != '/')
+                    {
+                        if (Advance() == '\n')
+                        {
+                            line++;
+                        }
+                    }
+
+                    // Discard '*' and '/'
+                    _ = Advance();
+                    _ = Advance();
                 }
                 else
                 {
