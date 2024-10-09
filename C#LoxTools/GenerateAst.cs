@@ -17,10 +17,10 @@ public class GenerateAst
             outputDir,
             "Expr",
             [
-                "Binary   : Expr left, Token operator, Expr right",
+                "Binary   : Expr left, Token @operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
-                "Unary    : Token operator, Expr right"
+                "Unary    : Token @operator, Expr right"
             ]
         );
     }
@@ -48,7 +48,10 @@ public class GenerateAst
             await DefineType(writer, baseName, className, fields);
         }
 
-        await writer.WriteAsync("};");
+        await writer.WriteAsync
+        (
+            "};\n"
+        );
     }
 
     private static async Task DefineType(StreamWriter writer, string baseName, string className, string fieldList)
@@ -56,6 +59,7 @@ public class GenerateAst
         await writer.WriteAsync
         (
             $$"""
+
                 public class {{className}} : {{baseName}} 
                 {
                     public {{className}}({{fieldList}})
@@ -70,35 +74,26 @@ public class GenerateAst
             var name = field.Split(' ')[1];
             await writer.WriteAsync
             (
-                $"""
-                            this.{name} = {name};
-                """
+                $"\n\t\t\tthis.{name} = {name};"
             );
         }
 
         await writer.WriteAsync
         (
-            """
-                    }
-            
-            """
+            "\n\t\t}\n"
         );
 
         foreach (var field in fields)
         {
             await writer.WriteAsync
             (
-                $"""
-                        public readonly {field};
-                """
+                $"\n\t\tpublic readonly {field};"
             );
         }
 
         await writer.WriteAsync
         (
-            """
-                }
-            """
+            "\n\t}\n"
         );
     }
 }
