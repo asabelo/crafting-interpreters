@@ -19,7 +19,7 @@ public class GenerateAst
             [
                 "Binary   : Expr left, Token @operator, Expr right",
                 "Grouping : Expr expression",
-                "Literal  : Object value",
+                "Literal  : object value",
                 "Unary    : Token @operator, Expr right"
             ]
         );
@@ -41,6 +41,9 @@ public class GenerateAst
             """
         );
 
+        await DefineVisitor(writer, baseName, types);
+
+        // AST classes
         foreach (var type in types)
         {
             var (className, fields) = type.Split(':', StringSplitOptions.TrimEntries) switch { var a => (a[0], a[1]) };
@@ -48,9 +51,43 @@ public class GenerateAst
             await DefineType(writer, baseName, className, fields);
         }
 
+        // base accept() method
+        await writer.WriteAsync("\n    public abstract R Accept<R>(IVisitor<R> visitor);\n");
+
         await writer.WriteAsync
         (
             "};\n"
+        );
+    }
+
+    private static async Task DefineVisitor(StreamWriter writer, string baseName, List<string> types)
+    {
+        await writer.WriteAsync
+        (
+            """
+            
+                public interface IVisitor<R>
+                {
+            """
+        );
+        
+        foreach (var type in types)
+        {
+            string typeName = type.Split(':', StringSplitOptions.TrimEntries)[0];
+
+            await writer.WriteAsync
+            (
+                $"""
+
+                        R Visit{typeName}{baseName}({typeName} {baseName.ToLower()});
+
+                """
+            );
+        }
+
+        await writer.WriteAsync
+        (
+            "    }\n"
         );
     }
 
@@ -74,26 +111,38 @@ public class GenerateAst
             var name = field.Split(' ')[1];
             await writer.WriteAsync
             (
-                $"\n\t\t\tthis.{name} = {name};"
+                $"\n            this.{name} = {name};"
             );
         }
 
         await writer.WriteAsync
         (
-            "\n\t\t}\n"
+            "\n        }\n"
+        );
+
+        await writer.WriteAsync
+        (
+            $$"""
+
+                    public override R Accept<R>(IVisitor<R> visitor)
+                    {
+                        return visitor.Visit{{className}}{{baseName}}(this);
+                    }
+
+            """
         );
 
         foreach (var field in fields)
         {
             await writer.WriteAsync
             (
-                $"\n\t\tpublic readonly {field};"
+                $"\n        public readonly {field};"
             );
         }
 
         await writer.WriteAsync
         (
-            "\n\t}\n"
+            "\n    }\n"
         );
     }
 }
