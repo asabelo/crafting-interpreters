@@ -7,6 +7,7 @@ public class Parser(List<Token> tokens)
     private class ParseError : Exception {}
 
     private List<Token> Tokens { get; } = tokens;
+    
     private int current = 0;
 
     public async Task<Expr?> ParseAsync()
@@ -21,66 +22,29 @@ public class Parser(List<Token> tokens)
         }
     }
 
-    private async Task<Expr> ExpressionAsync()
-    {
-        return await EqualityAsync();
-    }
+    private Task<Expr> ExpressionAsync() => EqualityAsync();
 
-    private async Task<Expr> EqualityAsync()
+    private async Task<Expr> BinaryAsync(Func<Task<Expr>> operand, params TokenType[] operators)
     {
-        Expr expr = await ComparisonAsync();
+        var expr = await operand();
 
-        while (Match(BANG_EQUAL, EQUAL_EQUAL))
+        while (Match(operators))
         {
-            Token @operator = Previous();
-            Expr right = await ComparisonAsync();
-            expr = new Expr.Binary(expr, @operator, right);
+            var op = Previous();
+            var right = await operand();
+            expr = new Expr.Binary(expr, op, right);
         }
 
         return expr;
     }
 
-    private async Task<Expr> ComparisonAsync()
-    {
-        Expr expr = await TermAsync();
+    private Task<Expr> EqualityAsync() => BinaryAsync(ComparisonAsync, BANG_EQUAL, EQUAL_EQUAL);
 
-        while (Match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
-        {
-            Token @operator = Previous();
-            Expr right = await TermAsync();
-            expr = new Expr.Binary(expr, @operator, right);
-        }
+    private Task<Expr> ComparisonAsync() => BinaryAsync(TermAsync, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL);
 
-        return expr;
-    }
+    private Task<Expr> TermAsync() => BinaryAsync(FactorAsync, MINUS, PLUS);
 
-    private async Task<Expr> TermAsync()
-    {
-        Expr expr = await FactorAsync();
-
-        while (Match(MINUS, PLUS))
-        {
-            Token @operator = Previous();
-            Expr right = await FactorAsync();
-            expr = new Expr.Binary(expr, @operator, right);
-        }
-
-        return expr;
-    }
-
-    private async Task<Expr> FactorAsync()
-    {
-        Expr expr = await UnaryAsync();
-
-        while (Match(SLASH, STAR))
-        {
-            Token @operator = Previous();
-            Expr right = await UnaryAsync();
-            expr = new Expr.Binary(expr, @operator, right);
-        }
-
-        return expr;
-    }
+    private Task<Expr> FactorAsync() => BinaryAsync(UnaryAsync, SLASH, STAR);
 
     private async Task<Expr> UnaryAsync()
     {
@@ -153,6 +117,7 @@ public class Parser(List<Token> tokens)
     private Token Advance()
     {
         if (!IsAtEnd()) current++;
+
         return Previous();
     }
 
