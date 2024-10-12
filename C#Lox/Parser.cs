@@ -7,7 +7,7 @@ public class Parser(List<Token> tokens)
     private class ParseError : Exception {}
 
     private List<Token> Tokens { get; } = tokens;
-    
+
     private int current = 0;
 
     public async Task<Expr?> ParseAsync()
@@ -22,8 +22,6 @@ public class Parser(List<Token> tokens)
         }
     }
 
-    private Task<Expr> ExpressionAsync() => EqualityAsync();
-
     private async Task<Expr> BinaryAsync(Func<Task<Expr>> operand, params TokenType[] operators)
     {
         var expr = await operand();
@@ -37,6 +35,10 @@ public class Parser(List<Token> tokens)
 
         return expr;
     }
+
+    private Task<Expr> ExpressionAsync() => CommaAsync();
+
+    private Task<Expr> CommaAsync() => BinaryAsync(EqualityAsync, COMMA);
 
     private Task<Expr> EqualityAsync() => BinaryAsync(ComparisonAsync, BANG_EQUAL, EQUAL_EQUAL);
 
