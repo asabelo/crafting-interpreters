@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C#Lox", "C#Lox\C#Lox.csproj", "{127B9B1A-62BC-4BA1-92AB-E76CBB31402D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C#LoxTools", "C#LoxTools\C#LoxTools.csproj", "{172C4BDD-0668-4D59-BAA6-0DF7E7D80179}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{127B9B1A-62BC-4BA1-92AB-E76CBB31402D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{127B9B1A-62BC-4BA1-92AB-E76CBB31402D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{127B9B1A-62BC-4BA1-92AB-E76CBB31402D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{172C4BDD-0668-4D59-BAA6-0DF7E7D80179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{172C4BDD-0668-4D59-BAA6-0DF7E7D80179}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{172C4BDD-0668-4D59-BAA6-0DF7E7D80179}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{172C4BDD-0668-4D59-BAA6-0DF7E7D80179}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

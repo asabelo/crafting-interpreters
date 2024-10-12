@@ -61,10 +61,12 @@ public static class Lox
         var scanner = new Scanner(code);
         var tokens = await scanner.ScanTokens();
 
-        foreach (var token in tokens)
-        {
-            await Console.Out.WriteLineAsync(token.ToString());
-        }
+        var parser = new Parser(tokens);
+        var expr = await parser.ParseAsync();
+
+        if (hadError || expr is null) return;
+
+        Console.WriteLine(new AstPrinter().Print(expr));
     }
 
     public static async Task ErrorAsync(int line, string message)
@@ -77,5 +79,17 @@ public static class Lox
     {
         await Console.Error.WriteLineAsync($"[line {line}] Error{where}: {message}");
         hadError = true;
+    }
+
+    public static async Task ErrorAsync(Token token, string message)
+    {
+        if (token.Type == TokenType.EOF)
+        {
+            await ReportAsync(token.Line, " at end", message);
+        }
+        else
+        {
+            await ReportAsync(token.Line, $" at '{token.Lexeme}'", message);
+        }
     }
 }
