@@ -1,19 +1,13 @@
-using System.ComponentModel;
 using static Lox.TokenType;
 
 namespace Lox;
 
-public class Parser
+public class Parser(List<Token> tokens)
 {
     private class ParseError : Exception {}
 
-    private readonly List<Token> tokens;
+    private List<Token> Tokens { get; } = tokens;
     private int current = 0;
-
-    public Parser(List<Token> tokens)
-    {
-        this.tokens = tokens;
-    }
 
     public async Task<Expr?> ParseAsync()
     {
@@ -169,12 +163,12 @@ public class Parser
 
     private Token Peek() 
     {
-        return tokens[current];
+        return Tokens[current];
     }
 
     private Token Previous() 
     {
-        return tokens[current - 1];
+        return Tokens[current - 1];
     }
 
     private static async Task<ParseError> ErrorAsync(Token token, string message)

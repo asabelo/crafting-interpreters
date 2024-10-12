@@ -34,7 +34,7 @@ public class Scanner
         this.source = source;
     }
 
-    public async Task<List<Token>> ScanTokens()
+    public async Task<List<Token>> ScanTokensAsync()
     {
         while (!IsAtEnd())
         {

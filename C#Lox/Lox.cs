@@ -59,7 +59,7 @@ public static class Lox
     private static async Task RunAsync(string code)
     {
         var scanner = new Scanner(code);
-        var tokens = await scanner.ScanTokens();
+        var tokens = await scanner.ScanTokensAsync();
 
         var parser = new Parser(tokens);
         var expr = await parser.ParseAsync();
