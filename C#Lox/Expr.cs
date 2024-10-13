@@ -1,108 +1,55 @@
 namespace Lox;
 
-public abstract class Expr
+public abstract record Expr
 {
     public interface IVisitor<R>
     {
         R VisitTernaryExpr(Ternary expr);
-
         R VisitBinaryExpr(Binary expr);
-
         R VisitGroupingExpr(Grouping expr);
-
         R VisitLiteralExpr(Literal expr);
-
         R VisitUnaryExpr(Unary expr);
     }
 
-    public class Ternary : Expr 
+    public record Ternary(Expr Left, Token LeftOperator, Expr Middle, Token RightOperator, Expr Right) : Expr
     {
-        public Ternary(Expr left, Token leftOp, Expr middle, Token rightOp, Expr right)
-        {
-            this.left = left;
-            this.leftOp = leftOp;
-            this.middle = middle;
-            this.rightOp = rightOp;
-            this.right = right;
-        }
-
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitTernaryExpr(this);
         }
-
-        public readonly Expr left;
-        public readonly Token leftOp;
-        public readonly Expr middle;
-        public readonly Token rightOp;
-        public readonly Expr right;
     }
 
-    public class Binary : Expr 
+    public record Binary(Expr Left, Token Operator, Expr Right) : Expr
     {
-        public Binary(Expr left, Token @operator, Expr right)
-        {
-            this.left = left;
-            this.@operator = @operator;
-            this.right = right;
-        }
-
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitBinaryExpr(this);
         }
-
-        public readonly Expr left;
-        public readonly Token @operator;
-        public readonly Expr right;
     }
 
-    public class Grouping : Expr 
+    public record Grouping(Expr Expression) : Expr
     {
-        public Grouping(Expr expression)
-        {
-            this.expression = expression;
-        }
-
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitGroupingExpr(this);
         }
-
-        public readonly Expr expression;
     }
 
-    public class Literal : Expr 
+    public record Literal(object? Value) : Expr
     {
-        public Literal(object? value)
-        {
-            this.value = value;
-        }
-
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitLiteralExpr(this);
         }
-
-        public readonly object? value;
     }
 
-    public class Unary : Expr 
+    public record Unary(Token Operator, Expr Expression) : Expr
     {
-        public Unary(Token @operator, Expr right)
-        {
-            this.@operator = @operator;
-            this.right = right;
-        }
-
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitUnaryExpr(this);
         }
-
-        public readonly Token @operator;
-        public readonly Expr right;
     }
 
     public abstract R Accept<R>(IVisitor<R> visitor);
-};
+}

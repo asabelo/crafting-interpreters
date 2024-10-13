@@ -17,11 +17,11 @@ public class GenerateAst
             outputDir,
             "Expr",
             [
-                "Ternary  : Expr left, Token leftOp, Expr middle, Token rightOp, Expr right",
-                "Binary   : Expr left, Token @operator, Expr right",
-                "Grouping : Expr expression",
-                "Literal  : object? value",
-                "Unary    : Token @operator, Expr right"
+                "Ternary  : Expr Left, Token LeftOperator, Expr Middle, Token RightOperator, Expr Right",
+                "Binary   : Expr Left, Token Operator, Expr Right",
+                "Grouping : Expr Expression",
+                "Literal  : object? Value",
+                "Unary    : Token Operator, Expr Expression"
             ]
         );
     }
@@ -32,15 +32,10 @@ public class GenerateAst
 
         using var writer = new StreamWriter(path);
 
-        await writer.WriteAsync
-        (
-            $$"""
-            namespace Lox;
-
-            public abstract class {{baseName}}
-            {
-            """
-        );
+        await writer.WriteLineAsync("namespace Lox;");
+        await writer.WriteLineAsync();
+        await writer.WriteLineAsync($"public abstract record {baseName}");
+        await writer.WriteLineAsync("{");
 
         await DefineVisitorAsync(writer, baseName, types);
 
@@ -53,97 +48,38 @@ public class GenerateAst
         }
 
         // base accept() method
-        await writer.WriteAsync("\n    public abstract R Accept<R>(IVisitor<R> visitor);\n");
+        await writer.WriteLineAsync();
+        await writer.WriteLineAsync("    public abstract R Accept<R>(IVisitor<R> visitor);");
 
-        await writer.WriteAsync
-        (
-            "};\n"
-        );
+        await writer.WriteLineAsync("}");
     }
 
     private static async Task DefineVisitorAsync(StreamWriter writer, string baseName, List<string> types)
     {
-        await writer.WriteAsync
-        (
-            """
-            
-                public interface IVisitor<R>
-                {
-            """
-        );
-        
+        await writer.WriteLineAsync("    public interface IVisitor<R>");
+        await writer.WriteLineAsync("    {");
+       
         foreach (var type in types)
         {
             string typeName = type.Split(':', StringSplitOptions.TrimEntries)[0];
 
-            await writer.WriteAsync
-            (
-                $"""
-
-                        R Visit{typeName}{baseName}({typeName} {baseName.ToLower()});
-
-                """
-            );
+            await writer.WriteLineAsync($"        R Visit{typeName}{baseName}({typeName} {baseName.ToLower()});");
         }
 
-        await writer.WriteAsync
-        (
-            "    }\n"
-        );
+        await writer.WriteLineAsync("    }");
     }
 
     private static async Task DefineTypeAsync(StreamWriter writer, string baseName, string className, string fieldList)
     {
-        await writer.WriteAsync
-        (
-            $$"""
-
-                public class {{className}} : {{baseName}} 
-                {
-                    public {{className}}({{fieldList}})
-                    {
-            """
-        );
-
         var fields = fieldList.Split(", ");
 
-        foreach (var field in fields)
-        {
-            var name = field.Split(' ')[1];
-            await writer.WriteAsync
-            (
-                $"\n            this.{name} = {name};"
-            );
-        }
-
-        await writer.WriteAsync
-        (
-            "\n        }\n"
-        );
-
-        await writer.WriteAsync
-        (
-            $$"""
-
-                    public override R Accept<R>(IVisitor<R> visitor)
-                    {
-                        return visitor.Visit{{className}}{{baseName}}(this);
-                    }
-
-            """
-        );
-
-        foreach (var field in fields)
-        {
-            await writer.WriteAsync
-            (
-                $"\n        public readonly {field};"
-            );
-        }
-
-        await writer.WriteAsync
-        (
-            "\n    }\n"
-        );
+        await writer.WriteLineAsync();
+        await writer.WriteLineAsync($"    public record {className}({fieldList}) : {baseName}");
+        await writer.WriteLineAsync( "    {");
+        await writer.WriteLineAsync( "        public override R Accept<R>(IVisitor<R> visitor)");
+        await writer.WriteLineAsync( "        {");
+        await writer.WriteLineAsync($"            return visitor.Visit{className}{baseName}(this);");
+        await writer.WriteLineAsync( "        }");
+        await writer.WriteLineAsync( "    }");
     }
 }

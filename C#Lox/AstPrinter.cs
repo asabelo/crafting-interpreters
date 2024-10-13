@@ -11,27 +11,27 @@ public class AstPrinter : Expr.IVisitor<string>
 
     public string VisitTernaryExpr(Expr.Ternary expr)
     {
-        return Parenthesize($"{expr.leftOp.Lexeme}{expr.rightOp.Lexeme}", expr.left, expr.middle, expr.right);
+        return Parenthesize($"{expr.LeftOperator.Lexeme}{expr.RightOperator.Lexeme}", expr.Left, expr.Middle, expr.Right);
     }
 
     public string VisitBinaryExpr(Expr.Binary expr)
     {
-        return Parenthesize(expr.@operator.Lexeme, expr.left, expr.right);
+        return Parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right);
     }
 
     public string VisitGroupingExpr(Expr.Grouping expr)
     {
-        return Parenthesize("group", expr.expression);
+        return Parenthesize("group", expr.Expression);
     }
 
     public string VisitLiteralExpr(Expr.Literal expr)
     {
-        return expr.value?.ToString() ?? "nil";
+        return expr.Value?.ToString() ?? "nil";
     }
 
     public string VisitUnaryExpr(Expr.Unary expr)
     {
-        return Parenthesize(expr.@operator.Lexeme, expr.right);
+        return Parenthesize(expr.Operator.Lexeme, expr.Expression);
     }
 
     private string Parenthesize(string name, params Expr[] exprs)
