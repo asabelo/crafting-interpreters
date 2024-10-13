@@ -39,14 +39,14 @@ public class Scanner
         while (!IsAtEnd())
         {
             start = current;
-            await ScanToken();
+            await ScanTokenAsync();
         }
 
         tokens.Add(new Token(TokenType.EOF, string.Empty, null, line));
         return tokens;
     }
 
-    private async Task ScanToken()
+    private async Task ScanTokenAsync()
     {
         char c = Advance();
 
@@ -90,6 +90,14 @@ public class Scanner
 
             case '*':
                 AddToken(TokenType.STAR);
+                break;
+
+            case '?':
+                AddToken(TokenType.QUESTION_MARK);
+                break;
+
+            case ':':
+                AddToken(TokenType.COLON);
                 break;
 
             case '!':
@@ -147,7 +155,7 @@ public class Scanner
                 break;
 
             case '"':
-                await ScanString();
+                await ScanStringAsync();
                 break;
 
             default:
@@ -212,7 +220,7 @@ public class Scanner
         return c is >= '0' and <= '9';
     }
 
-    private async Task ScanString()
+    private async Task ScanStringAsync()
     {
         while (Peek() != '"' && !IsAtEnd())
         {

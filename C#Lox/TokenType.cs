@@ -8,6 +8,7 @@ public enum TokenType
     COMMA, DOT,                 // , .
     MINUS, PLUS,                // - +
     SEMICOLON, SLASH, STAR,     // ; / *
+    QUESTION_MARK, COLON,       // ? :
 
     // One or two character tokens.
     BANG, BANG_EQUAL,           // ! !=

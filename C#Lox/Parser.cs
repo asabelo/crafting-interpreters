@@ -22,23 +22,43 @@ public class Parser(List<Token> tokens)
         }
     }
 
+    private Task<Expr> ExpressionAsync() => CommaAsync();
+
     private async Task<Expr> BinaryAsync(Func<Task<Expr>> operand, params TokenType[] operators)
     {
-        var expr = await operand();
+        var left = await operand();
 
         while (Match(operators))
         {
             var op = Previous();
             var right = await operand();
-            expr = new Expr.Binary(expr, op, right);
+            left = new Expr.Binary(left, op, right);
         }
 
-        return expr;
+        return left;
     }
 
-    private Task<Expr> ExpressionAsync() => CommaAsync();
+    private Task<Expr> CommaAsync() => BinaryAsync(TernaryAsync, COMMA);
 
-    private Task<Expr> CommaAsync() => BinaryAsync(EqualityAsync, COMMA);
+    private async Task<Expr> TernaryAsync()
+    {
+        var left = await EqualityAsync();
+        
+        if (Match(QUESTION_MARK))
+        {
+            var leftOp = Previous();
+
+            var middle = await EqualityAsync();
+
+            var rightOp = await ConsumeAsync(COLON, "Expect ':'.");
+
+            var right = await TernaryAsync();
+
+            left = new Expr.Ternary(left, leftOp, middle, rightOp, right);
+        }
+
+        return left;
+    }
 
     private Task<Expr> EqualityAsync() => BinaryAsync(ComparisonAsync, BANG_EQUAL, EQUAL_EQUAL);
 

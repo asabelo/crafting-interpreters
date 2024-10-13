@@ -9,6 +9,11 @@ public class AstPrinter : Expr.IVisitor<string>
         return expr.Accept(this);
     }
 
+    public string VisitTernaryExpr(Expr.Ternary expr)
+    {
+        return Parenthesize($"{expr.leftOp.Lexeme}{expr.rightOp.Lexeme}", expr.left, expr.middle, expr.right);
+    }
+
     public string VisitBinaryExpr(Expr.Binary expr)
     {
         return Parenthesize(expr.@operator.Lexeme, expr.left, expr.right);

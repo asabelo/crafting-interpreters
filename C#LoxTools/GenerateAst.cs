@@ -12,11 +12,12 @@ public class GenerateAst
 
         string outputDir = args[0];
 
-        await DefineAst
+        await DefineAstAsync
         (
             outputDir,
             "Expr",
             [
+                "Ternary  : Expr left, Token leftOp, Expr middle, Token rightOp, Expr right",
                 "Binary   : Expr left, Token @operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : object? value",
@@ -25,7 +26,7 @@ public class GenerateAst
         );
     }
 
-    private static async Task DefineAst(string outputDir, string baseName, List<string> types)
+    private static async Task DefineAstAsync(string outputDir, string baseName, List<string> types)
     {
         string path = Path.ChangeExtension(Path.Combine(outputDir, baseName), "cs");
 
@@ -41,14 +42,14 @@ public class GenerateAst
             """
         );
 
-        await DefineVisitor(writer, baseName, types);
+        await DefineVisitorAsync(writer, baseName, types);
 
         // AST classes
         foreach (var type in types)
         {
             var (className, fields) = type.Split(':', StringSplitOptions.TrimEntries) switch { var a => (a[0], a[1]) };
             
-            await DefineType(writer, baseName, className, fields);
+            await DefineTypeAsync(writer, baseName, className, fields);
         }
 
         // base accept() method
@@ -60,7 +61,7 @@ public class GenerateAst
         );
     }
 
-    private static async Task DefineVisitor(StreamWriter writer, string baseName, List<string> types)
+    private static async Task DefineVisitorAsync(StreamWriter writer, string baseName, List<string> types)
     {
         await writer.WriteAsync
         (
@@ -91,7 +92,7 @@ public class GenerateAst
         );
     }
 
-    private static async Task DefineType(StreamWriter writer, string baseName, string className, string fieldList)
+    private static async Task DefineTypeAsync(StreamWriter writer, string baseName, string className, string fieldList)
     {
         await writer.WriteAsync
         (
