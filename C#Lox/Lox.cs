@@ -3,6 +3,9 @@
 public static class Lox 
 {
     private static bool hadError = false;
+    private static bool hadRuntimeError = false;
+
+    private static readonly Interpreter interpreter = new(); 
 
     public static async Task Main(string[] args)
     {
@@ -34,6 +37,10 @@ public static class Lox
         {
             Environment.Exit(65);
         }
+        else if (hadRuntimeError)
+        {
+            Environment.Exit(70);
+        }
     }
 
     // Start a REPL
@@ -62,11 +69,12 @@ public static class Lox
         var tokens = await scanner.ScanTokensAsync();
 
         var parser = new Parser(tokens);
-        var expr = await parser.ParseAsync();
+        var expression = await parser.ParseAsync();
 
-        if (hadError || expr is null) return;
+        if (hadError || expression is null) return;
 
-        Console.WriteLine(new AstPrinter().Print(expr));
+        // Console.WriteLine(new AstPrinter().Print(expr));
+        await interpreter.Interpret(expression);
     }
 
     public static async Task ErrorAsync(int line, string message)
@@ -91,5 +99,12 @@ public static class Lox
         {
             await ReportAsync(token.Line, $" at '{token.Lexeme}'", message);
         }
+    }
+
+    public static async Task RuntimeErrorAsync(RuntimeError error)
+    {
+        await Console.Error.WriteLineAsync($"{error.Message}\n[line {error.Token.Line}]");
+
+        hadRuntimeError = true;
     }
 }
