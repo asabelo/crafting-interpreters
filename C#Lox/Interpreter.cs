@@ -2,6 +2,19 @@ namespace Lox;
 
 public class Interpreter : Expr.IVisitor<object?>
 {
+    public async Task Interpret(Expr expression)
+    {
+        try
+        {
+            var value = Evaluate(expression);
+            await Console.Out.WriteLineAsync(Stringify(value));
+        }
+        catch (RuntimeError error)
+        {
+            await Lox.RuntimeErrorAsync(error);
+        }
+    }
+
     public object? VisitBinaryExpr(Expr.Binary expr)
     {
         var left = Evaluate(expr.left);
@@ -22,7 +35,9 @@ public class Interpreter : Expr.IVisitor<object?>
             TokenType.LESS_EQUAL    => CheckNumber(expr.@operator, left) <= CheckNumber(expr.@operator, right),
 
             TokenType.BANG_EQUAL    => !IsEqual(left, right),
-            TokenType.EQUAL_EQUAL   => IsEqual(left, right)
+            TokenType.EQUAL_EQUAL   => IsEqual(left, right),
+
+            _ => throw new RuntimeError(expr.@operator, "Unexpected error.")
         };
     }
 
@@ -63,6 +78,11 @@ public class Interpreter : Expr.IVisitor<object?>
             (null, _)    => false,
             _            => left.Equals(right)
         };
+    }
+
+    private static string Stringify(object? obj)
+    {
+        return obj?.ToString() ?? "nil";
     }
 
     private static bool IsTruthy(object? expression)
