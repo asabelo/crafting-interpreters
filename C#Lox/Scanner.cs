@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Lox;
 
 public class Scanner
@@ -210,7 +212,7 @@ public class Scanner
             }
         }
 
-        var doubleLiteral = double.Parse(source[start..current]);
+        var doubleLiteral = double.Parse(source[start..current], CultureInfo.InvariantCulture);
 
         AddToken(TokenType.NUMBER, doubleLiteral);
     }

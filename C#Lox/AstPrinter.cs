@@ -14,6 +14,11 @@ public class AstPrinter : Expr.IVisitor<string>
         return Parenthesize($"{expr.LeftOperator.Lexeme}{expr.RightOperator.Lexeme}", expr.Left, expr.Middle, expr.Right);
     }
 
+    public string VisitAssignExpr(Expr.Assign expr)
+    {
+        throw new NotImplementedException();
+    }
+
     public string VisitBinaryExpr(Expr.Binary expr)
     {
         return Parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right);
@@ -32,6 +37,11 @@ public class AstPrinter : Expr.IVisitor<string>
     public string VisitUnaryExpr(Expr.Unary expr)
     {
         return Parenthesize(expr.Operator.Lexeme, expr.Expression);
+    }
+
+    public string VisitVariableExpr(Expr.Variable expr)
+    {
+        throw new NotImplementedException();
     }
 
     private string Parenthesize(string name, params Expr[] exprs)

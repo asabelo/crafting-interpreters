@@ -10,19 +10,110 @@ public class Parser(List<Token> tokens)
 
     private int current = 0;
 
-    public async Task<Expr?> ParseAsync()
+    public async Task<List<Stmt>> ParseAsync()
+    {
+        var statements = new List<Stmt>();
+        
+        while (!IsAtEnd())
+        {
+            var declaration = await DeclarationAsync();
+
+            if (declaration is not null)
+            {
+                statements.Add(declaration);
+            }
+        }
+
+        return statements;
+    }
+
+    private async Task<Stmt?> DeclarationAsync()
     {
         try
         {
-            return await ExpressionAsync();
-        }
+            if (Match(VAR)) return await VarDeclarationAsync();
+
+            return await StatementAsync();
+        } 
         catch (ParseError)
         {
+            Synchronize();
+
             return null;
         }
     }
 
-    private Task<Expr> ExpressionAsync() => CommaAsync();
+    private async Task<Stmt> StatementAsync()
+    {
+        if (Match(PRINT))
+        {
+            return await PrintStatementAsync();
+        }
+        else if (Match(LEFT_BRACE))
+        {
+            return new Stmt.Block(await BlockAsync());
+        }
+
+        return await ExpressionStatementAsync();
+    }
+
+    private async Task<List<Stmt>> BlockAsync()
+    {
+        List<Stmt> statements = [];
+
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            var declaration = await DeclarationAsync();
+
+            if (declaration is not null)
+            {
+                statements.Add(declaration);
+            }
+        }
+
+        await ConsumeAsync(RIGHT_BRACE, "Expect '}' after block.");
+
+        return statements;
+    }
+
+    private async Task<Stmt> PrintStatementAsync()
+    {
+        var value = await ExpressionAsync();
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after value.");
+
+        return new Stmt.Print(value);
+    }
+
+    private async Task<Stmt> VarDeclarationAsync()
+    {
+        var name = await ConsumeAsync(IDENTIFIER, "Expect variable name.");
+
+        Expr? initializer = null;
+
+        if (Match(EQUAL)) 
+        {
+            initializer = await ExpressionAsync();
+        }
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after variable declaration.");
+
+        return new Stmt.Var(name, initializer);
+    }
+
+    private async Task<Stmt> ExpressionStatementAsync()
+    {
+        var expression = await ExpressionAsync();
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after expression.");
+
+        return new Stmt.Expression(expression);
+    }
+
+    private async Task<Expr> ExpressionAsync()
+    {
+        return await CommaAsync();
+    }
 
     private async Task<Expr> BinaryAsync(Func<Task<Expr>> operand, params TokenType[] operators)
     {
@@ -38,7 +129,29 @@ public class Parser(List<Token> tokens)
         return left;
     }
 
-    private Task<Expr> CommaAsync() => BinaryAsync(TernaryAsync, COMMA);
+    private Task<Expr> CommaAsync() => BinaryAsync(AssignmentAsync, COMMA);
+
+    private async Task<Expr> AssignmentAsync()
+    {
+        var expr = await TernaryAsync();
+
+        if (Match(EQUAL))
+        {
+            var equals = Previous();
+            var value = await AssignmentAsync();
+
+            if (expr is Expr.Variable varExpr)
+            {
+                var name = varExpr.Name;
+
+                return new Expr.Assign(name, value);
+            }
+
+            await ErrorAsync(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
 
     private async Task<Expr> TernaryAsync()
     {
@@ -97,6 +210,10 @@ public class Parser(List<Token> tokens)
         else if (Match(NUMBER, STRING))
         {
             return new Expr.Literal(Previous().Literal);
+        }
+        if (Match(IDENTIFIER))
+        {
+            return new Expr.Variable(Previous());
         }
         else if (Match(LEFT_PAREN))
         {

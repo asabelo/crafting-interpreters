@@ -1,5 +1,7 @@
 ﻿namespace Lox;
 
+using Env = System.Environment;
+
 public static class Lox 
 {
     private static bool hadError = false;
@@ -13,7 +15,7 @@ public static class Lox
         {
             case > 1:
                 await Console.Out.WriteLineAsync("Usage: c#lox [script]");
-                Environment.Exit(64);
+                Env.Exit(64);
                 break;
 
             case 1:
@@ -35,11 +37,11 @@ public static class Lox
 
         if (hadError)
         {
-            Environment.Exit(65);
+            Env.Exit(65);
         }
         else if (hadRuntimeError)
         {
-            Environment.Exit(70);
+            Env.Exit(70);
         }
     }
 
@@ -69,12 +71,12 @@ public static class Lox
         var tokens = await scanner.ScanTokensAsync();
 
         var parser = new Parser(tokens);
-        var expression = await parser.ParseAsync();
+        var statements = await parser.ParseAsync();
 
-        if (hadError || expression is null) return;
+        if (hadError || statements is null) return;
 
         // Console.WriteLine(new AstPrinter().Print(expr));
-        await interpreter.Interpret(expression);
+        await interpreter.Interpret(statements);
     }
 
     public static async Task ErrorAsync(int line, string message)

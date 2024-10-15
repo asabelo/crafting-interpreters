@@ -9,6 +9,8 @@ public abstract record Expr
         R VisitGroupingExpr(Grouping expr);
         R VisitLiteralExpr(Literal expr);
         R VisitUnaryExpr(Unary expr);
+        R VisitAssignExpr(Assign expr);
+        R VisitVariableExpr(Variable expr);
     }
 
     public record Ternary(Expr Left, Token LeftOperator, Expr Middle, Token RightOperator, Expr Right) : Expr
@@ -48,6 +50,22 @@ public abstract record Expr
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitUnaryExpr(this);
+        }
+    }
+
+    public record Assign(Token Name, Expr Value) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitAssignExpr(this);
+        }
+    }
+
+    public record Variable(Token Name) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitVariableExpr(this);
         }
     }
 

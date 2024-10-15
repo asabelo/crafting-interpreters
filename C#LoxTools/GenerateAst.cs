@@ -21,7 +21,21 @@ public class GenerateAst
                 "Binary   : Expr Left, Token Operator, Expr Right",
                 "Grouping : Expr Expression",
                 "Literal  : object? Value",
-                "Unary    : Token Operator, Expr Expression"
+                "Unary    : Token Operator, Expr Expression",
+                "Assign   : Token Name, Expr Value",
+                "Variable : Token Name"
+            ]
+        );
+
+        await DefineAstAsync
+        (
+            outputDir,
+            "Stmt",
+            [
+                "Block      : List<Stmt> Statements",
+                "Expression : Expr InnerExpression",
+                "Print      : Expr InnerExpression",
+                "Var        : Token Name, Expr? Initializer"
             ]
         );
     }

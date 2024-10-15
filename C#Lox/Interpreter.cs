@@ -1,13 +1,25 @@
+using System.Globalization;
+
 namespace Lox;
 
-public class Interpreter : Expr.IVisitor<object?>
+public sealed class Void
 {
-    public async Task Interpret(Expr expression)
+    public static readonly Void Value = new();
+    private Void() {}
+}
+
+public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
+{
+    private Environment environment = new();
+
+    public async Task Interpret(List<Stmt> statements)
     {
         try
         {
-            var value = Evaluate(expression);
-            await Console.Out.WriteLineAsync(Stringify(value));
+            foreach (var statement in statements)
+            {
+                Execute(statement);
+            }
         }
         catch (RuntimeError error)
         {
@@ -80,6 +92,52 @@ public class Interpreter : Expr.IVisitor<object?>
         };
     }
 
+    public object? VisitVariableExpr(Expr.Variable expr)
+    {
+        return environment.Get(expr.Name);
+    }
+
+    public object? VisitAssignExpr(Expr.Assign expr)
+    {
+        var value = Evaluate(expr.Value);
+
+        environment.Assign(expr.Name, value);
+
+        return value;
+    }
+
+    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    {
+        _ = Evaluate(stmt.InnerExpression);
+
+        return Void.Value;
+    }
+
+    public Void VisitPrintStmt(Stmt.Print stmt)
+    {
+        var value = Evaluate(stmt.InnerExpression);
+
+        Console.WriteLine(Stringify(value));
+
+        return Void.Value;
+    }
+
+    public Void VisitVarStmt(Stmt.Var stmt)
+    {
+        var value = stmt.Initializer is Expr e ? Evaluate(e) : null;
+
+        environment.Define(stmt.Name.Lexeme, value);
+        
+        return Void.Value;
+    }
+
+    public Void VisitBlockStmt(Stmt.Block stmt)
+    {
+        ExecuteBlock(stmt.Statements, new Environment(environment));
+
+        return Void.Value;
+    }
+
     private static double CheckNumber(Token @operator, object? operand)
     {
         if (operand is double number) return number;
@@ -99,6 +157,8 @@ public class Interpreter : Expr.IVisitor<object?>
 
     private static string Stringify(object? obj)
     {
+        if (obj is double number) return number.ToString(CultureInfo.InvariantCulture);
+
         return obj?.ToString() ?? "nil";
     }
 
@@ -115,5 +175,29 @@ public class Interpreter : Expr.IVisitor<object?>
     private object? Evaluate(Expr expression)
     {
         return expression.Accept(this);
+    }
+
+    private void Execute(Stmt statement)
+    {
+        statement.Accept(this);
+    }
+
+    private void ExecuteBlock(List<Stmt> statements, Environment environment)
+    {
+        var previousEnvironment = this.environment;
+
+        try
+        {
+            this.environment = environment;
+
+            foreach (var statement in statements)
+            {
+                Execute(statement);
+            }
+        }
+        finally
+        {
+            this.environment = previousEnvironment;
+        }
     }
 }
