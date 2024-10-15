@@ -23,6 +23,16 @@ public class GenerateAst
                 "Unary    : Token @operator, Expr right"
             ]
         );
+
+        await DefineAst
+        (
+            outputDir,
+            "Stmt",
+            [
+                "Expression : Expr expression",
+                "Print      : Expr expression"
+            ]
+        );
     }
 
     private static async Task DefineAst(string outputDir, string baseName, List<string> types)
