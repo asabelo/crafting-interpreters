@@ -9,6 +9,11 @@ public class AstPrinter : Expr.IVisitor<string>
         return expr.Accept(this);
     }
 
+    public string VisitAssignExpr(Expr.Assign expr)
+    {
+        throw new NotImplementedException();
+    }
+
     public string VisitBinaryExpr(Expr.Binary expr)
     {
         return Parenthesize(expr.@operator.Lexeme, expr.left, expr.right);
@@ -27,6 +32,11 @@ public class AstPrinter : Expr.IVisitor<string>
     public string VisitUnaryExpr(Expr.Unary expr)
     {
         return Parenthesize(expr.@operator.Lexeme, expr.right);
+    }
+
+    public string VisitVariableExpr(Expr.Variable expr)
+    {
+        throw new NotImplementedException();
     }
 
     private string Parenthesize(string name, params Expr[] exprs)

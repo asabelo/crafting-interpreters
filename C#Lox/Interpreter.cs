@@ -10,6 +10,7 @@ public sealed class Void
 
 public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 {
+    private Environment environment = new();
 
     public async Task Interpret(List<Stmt> statements)
     {
@@ -74,6 +75,52 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         };
     }
 
+    public object? VisitVariableExpr(Expr.Variable expr)
+    {
+        return environment.Get(expr.name);
+    }
+
+    public object? VisitAssignExpr(Expr.Assign expr)
+    {
+        var value = Evaluate(expr.value);
+
+        environment.Assign(expr.name, value);
+
+        return value;
+    }
+
+    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    {
+        _ = Evaluate(stmt.expression);
+
+        return Void.Value;
+    }
+
+    public Void VisitPrintStmt(Stmt.Print stmt)
+    {
+        var value = Evaluate(stmt.expression);
+
+        Console.WriteLine(Stringify(value));
+
+        return Void.Value;
+    }
+
+    public Void VisitVarStmt(Stmt.Var stmt)
+    {
+        var value = stmt.initializer is Expr e ? Evaluate(e) : null;
+
+        environment.Define(stmt.name.Lexeme, value);
+        
+        return Void.Value;
+    }
+
+    public Void VisitBlockStmt(Stmt.Block stmt)
+    {
+        ExecuteBlock(stmt.statements, new Environment(environment));
+
+        return Void.Value;
+    }
+
     private static double CheckNumber(Token @operator, object? operand)
     {
         if (operand is double number) return number;
@@ -118,19 +165,22 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         statement.Accept(this);
     }
 
-    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    private void ExecuteBlock(List<Stmt> statements, Environment environment)
     {
-        _ = Evaluate(stmt.expression);
+        var previousEnvironment = this.environment;
 
-        return Void.Value;
-    }
+        try
+        {
+            this.environment = environment;
 
-    public Void VisitPrintStmt(Stmt.Print stmt)
-    {
-        var value = Evaluate(stmt.expression);
-
-        Console.WriteLine(Stringify(value));
-
-        return Void.Value;
+            foreach (var statement in statements)
+            {
+                Execute(statement);
+            }
+        }
+        finally
+        {
+            this.environment = previousEnvironment;
+        }
     }
 }

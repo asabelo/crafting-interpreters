@@ -21,10 +21,31 @@ public class Parser
         
         while (!IsAtEnd())
         {
-            statements.Add(await StatementAsync());
+            var declaration = await DeclarationAsync();
+
+            if (declaration is not null)
+            {
+                statements.Add(declaration);
+            }
         }
 
         return statements;
+    }
+
+    private async Task<Stmt?> DeclarationAsync()
+    {
+        try
+        {
+            if (Match(VAR)) return await VarDeclarationAsync();
+
+            return await StatementAsync();
+        } 
+        catch (ParseError)
+        {
+            Synchronize();
+
+            return null;
+        }
     }
 
     private async Task<Stmt> StatementAsync()
@@ -33,8 +54,31 @@ public class Parser
         {
             return await PrintStatementAsync();
         }
+        else if (Match(LEFT_BRACE))
+        {
+            return new Stmt.Block(await BlockAsync());
+        }
 
         return await ExpressionStatementAsync();
+    }
+
+    private async Task<List<Stmt>> BlockAsync()
+    {
+        List<Stmt> statements = [];
+
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            var declaration = await DeclarationAsync();
+
+            if (declaration is not null)
+            {
+                statements.Add(declaration);
+            }
+        }
+
+        await ConsumeAsync(RIGHT_BRACE, "Expect '}' after block.");
+
+        return statements;
     }
 
     private async Task<Stmt> PrintStatementAsync()
@@ -44,6 +88,22 @@ public class Parser
         await ConsumeAsync(SEMICOLON, "Expect ';' after value.");
 
         return new Stmt.Print(value);
+    }
+
+    private async Task<Stmt> VarDeclarationAsync()
+    {
+        var name = await ConsumeAsync(IDENTIFIER, "Expect variable name.");
+
+        Expr? initializer = null;
+
+        if (Match(EQUAL)) 
+        {
+            initializer = await ExpressionAsync();
+        }
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after variable declaration.");
+
+        return new Stmt.Var(name, initializer);
     }
 
     private async Task<Stmt> ExpressionStatementAsync()
@@ -57,7 +117,29 @@ public class Parser
 
     private async Task<Expr> ExpressionAsync()
     {
-        return await EqualityAsync();
+        return await AssignmentAsync();
+    }
+
+    private async Task<Expr> AssignmentAsync()
+    {
+        var expr = await EqualityAsync();
+
+        if (Match(EQUAL))
+        {
+            var equals = Previous();
+            var value = await AssignmentAsync();
+
+            if (expr is Expr.Variable varExpr)
+            {
+                var name = varExpr.name;
+
+                return new Expr.Assign(name, value);
+            }
+
+            await ErrorAsync(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     private async Task<Expr> EqualityAsync()
@@ -145,6 +227,10 @@ public class Parser
         else if (Match(NUMBER, STRING))
         {
             return new Expr.Literal(Previous().Literal);
+        }
+        if (Match(IDENTIFIER))
+        {
+            return new Expr.Variable(Previous());
         }
         else if (Match(LEFT_PAREN))
         {
