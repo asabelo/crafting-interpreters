@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
@@ -191,7 +192,7 @@ public class Scanner
             }
         }
 
-        var doubleLiteral = double.Parse(source[start..current]);
+        var doubleLiteral = double.Parse(source[start..current], CultureInfo.InvariantCulture);
 
         AddToken(TokenType.NUMBER, doubleLiteral);
     }

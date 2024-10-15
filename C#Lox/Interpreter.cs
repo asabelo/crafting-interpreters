@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Lox;
 
 public class Interpreter : Expr.IVisitor<object?>
@@ -82,6 +84,8 @@ public class Interpreter : Expr.IVisitor<object?>
 
     private static string Stringify(object? obj)
     {
+        if (obj is double number) return number.ToString(CultureInfo.InvariantCulture);
+
         return obj?.ToString() ?? "nil";
     }
 
