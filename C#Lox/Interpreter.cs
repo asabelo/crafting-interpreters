@@ -31,7 +31,11 @@ public class Interpreter : Expr.IVisitor<object?>
         {
             TokenType.MINUS => CheckNumber(expr.Operator, left) - CheckNumber(expr.Operator, right),
             TokenType.STAR  => CheckNumber(expr.Operator, left) * CheckNumber(expr.Operator, right),
-            TokenType.SLASH => CheckNumber(expr.Operator, left) / CheckNumber(expr.Operator, right),
+            TokenType.SLASH => (left, right) switch
+            {
+                (_, 0.0) => throw new RuntimeError(expr.Operator, "Division by zero."),
+                _ => CheckNumber(expr.Operator, left) / CheckNumber(expr.Operator, right)
+            },
             TokenType.PLUS => (left, right) switch
             {
                 (double leftDouble, double rightDouble) => leftDouble + rightDouble,
