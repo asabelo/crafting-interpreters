@@ -2,14 +2,23 @@ using System.Globalization;
 
 namespace Lox;
 
-public class Interpreter : Expr.IVisitor<object?>
+public sealed class Void
 {
-    public async Task Interpret(Expr expression)
+    public static readonly Void Value = new();
+    private Void() {}
+}
+
+public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
+{
+
+    public async Task Interpret(List<Stmt> statements)
     {
         try
         {
-            var value = Evaluate(expression);
-            await Console.Out.WriteLineAsync(Stringify(value));
+            foreach (var statement in statements)
+            {
+                Execute(statement);
+            }
         }
         catch (RuntimeError error)
         {
@@ -102,5 +111,26 @@ public class Interpreter : Expr.IVisitor<object?>
     private object? Evaluate(Expr expression)
     {
         return expression.Accept(this);
+    }
+
+    private void Execute(Stmt statement)
+    {
+        statement.Accept(this);
+    }
+
+    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    {
+        _ = Evaluate(stmt.expression);
+
+        return Void.Value;
+    }
+
+    public Void VisitPrintStmt(Stmt.Print stmt)
+    {
+        var value = Evaluate(stmt.expression);
+
+        Console.WriteLine(Stringify(value));
+
+        return Void.Value;
     }
 }

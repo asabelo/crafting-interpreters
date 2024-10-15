@@ -15,16 +15,44 @@ public class Parser
         this.tokens = tokens;
     }
 
-    public async Task<Expr?> ParseAsync()
+    public async Task<List<Stmt>> ParseAsync()
     {
-        try
+        var statements = new List<Stmt>();
+        
+        while (!IsAtEnd())
         {
-            return await ExpressionAsync();
+            statements.Add(await StatementAsync());
         }
-        catch (ParseError)
+
+        return statements;
+    }
+
+    private async Task<Stmt> StatementAsync()
+    {
+        if (Match(PRINT))
         {
-            return null;
+            return await PrintStatementAsync();
         }
+
+        return await ExpressionStatementAsync();
+    }
+
+    private async Task<Stmt> PrintStatementAsync()
+    {
+        var value = await ExpressionAsync();
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after value.");
+
+        return new Stmt.Print(value);
+    }
+
+    private async Task<Stmt> ExpressionStatementAsync()
+    {
+        var expression = await ExpressionAsync();
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after expression.");
+
+        return new Stmt.Expression(expression);
     }
 
     private async Task<Expr> ExpressionAsync()
