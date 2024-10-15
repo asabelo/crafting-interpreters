@@ -32,9 +32,13 @@ public class Interpreter : Expr.IVisitor<object?>
             TokenType.MINUS => CheckNumber(expr.Operator, left) - CheckNumber(expr.Operator, right),
             TokenType.STAR  => CheckNumber(expr.Operator, left) * CheckNumber(expr.Operator, right),
             TokenType.SLASH => CheckNumber(expr.Operator, left) / CheckNumber(expr.Operator, right),
-            TokenType.PLUS when left is double leftDouble && right is double rightDouble => leftDouble + rightDouble,
-            TokenType.PLUS when left is string leftString && right is string rightString => leftString + rightString,
-            TokenType.PLUS => throw new RuntimeError(expr.Operator, "Operands must be two numbers or two strings."),
+            TokenType.PLUS => (left, right) switch
+            {
+                (double leftDouble, double rightDouble) => leftDouble + rightDouble,
+                (string leftString, var    rightOther)  => leftString + Stringify(rightOther),
+                (var    leftOther,  string rightString) => Stringify(leftOther) + rightString,
+                _ => throw new RuntimeError(expr.Operator, "Operands must be two numbers or a string and an object.")
+            },
 
             TokenType.GREATER       => CheckNumber(expr.Operator, left) >  CheckNumber(expr.Operator, right),
             TokenType.GREATER_EQUAL => CheckNumber(expr.Operator, left) >= CheckNumber(expr.Operator, right),
