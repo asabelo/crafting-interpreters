@@ -10,6 +10,7 @@ public abstract record Expr
         R VisitLiteralExpr(Literal expr);
         R VisitUnaryExpr(Unary expr);
         R VisitAssignExpr(Assign expr);
+        R VisitLogicalExpr(Logical expr);
         R VisitVariableExpr(Variable expr);
     }
 
@@ -58,6 +59,14 @@ public abstract record Expr
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitAssignExpr(this);
+        }
+    }
+
+    public record Logical(Expr Left, Token Operator, Expr Right) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitLogicalExpr(this);
         }
     }
 

@@ -23,6 +23,7 @@ public class GenerateAst
                 "Literal  : object? Value",
                 "Unary    : Token Operator, Expr Expression",
                 "Assign   : Token Name, Expr Value",
+                "Logical  : Expr Left, Token Operator, Expr Right",
                 "Variable : Token Name"
             ]
         );
@@ -35,7 +36,9 @@ public class GenerateAst
                 "Block      : List<Stmt> Statements",
                 "Expression : Expr InnerExpression",
                 "Print      : Expr InnerExpression",
-                "Var        : Token Name, Expr? Initializer"
+                "Var        : Token Name, Expr? Initializer",
+                "If         : Expr Condition, Stmt ThenBranch, Stmt? ElseBranch",
+                "While      : Expr Condition, Stmt Body"
             ]
         );
     }

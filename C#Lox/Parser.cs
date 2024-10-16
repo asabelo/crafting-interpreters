@@ -53,7 +53,19 @@ public class Parser(List<Token> tokens)
         {
             return new Stmt.Block(await BlockAsync());
         }
-
+        else if (Match(IF))
+        {
+            return await IfStatementAsync();
+        }
+        else if (Match(WHILE))
+        {
+            return await WhileStatementAsync();
+        }
+        else if (Match(FOR))
+        {
+            return await ForStatementAsync();
+        }
+        
         return await ExpressionStatementAsync();
     }
 
@@ -74,6 +86,20 @@ public class Parser(List<Token> tokens)
         await ConsumeAsync(RIGHT_BRACE, "Expect '}' after block.");
 
         return statements;
+    }
+
+    private async Task<Stmt> IfStatementAsync()
+    {
+        await ConsumeAsync(LEFT_PAREN, "Expect '(' after 'if'.");
+
+        var condition = await ExpressionAsync();
+
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after if condition.");
+
+        var thenBranch = await StatementAsync();
+        var elseBranch = Match(ELSE) ? await StatementAsync() : null;
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     private async Task<Stmt> PrintStatementAsync()
@@ -101,6 +127,53 @@ public class Parser(List<Token> tokens)
         return new Stmt.Var(name, initializer);
     }
 
+    private async Task<Stmt> WhileStatementAsync()
+    {
+        await ConsumeAsync(LEFT_PAREN, "Expect '(' after 'while'.");
+
+        var condition = await ExpressionAsync();
+
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after condition.");
+
+        var body = await StatementAsync();
+
+        return new Stmt.While(condition, body);
+    }
+
+    private async Task<Stmt> ForStatementAsync()
+    {
+        await ConsumeAsync(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt? initializer;
+        if (Match(SEMICOLON)) initializer = null;
+        else if (Match(VAR))  initializer = await VarDeclarationAsync();
+        else                  initializer = await ExpressionStatementAsync();
+        
+        Expr? condition = null;
+        if (!Check(SEMICOLON)) condition = await ExpressionAsync();
+        await ConsumeAsync(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expr? increment = null;
+        if (!Check(RIGHT_PAREN)) increment = await ExpressionAsync();
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        Stmt body = await StatementAsync();
+
+        if (increment is not null)
+        {
+            body = new Stmt.Block([body, new Stmt.Expression(increment)]);
+        }
+
+        body = new Stmt.While(condition ?? new Expr.Literal(true), body);
+
+        if (initializer is not null)
+        {
+            body = new Stmt.Block([initializer, body]);
+        }
+
+        return body;
+    }
+
     private async Task<Stmt> ExpressionStatementAsync()
     {
         var expression = await ExpressionAsync();
@@ -115,7 +188,7 @@ public class Parser(List<Token> tokens)
         return await CommaAsync();
     }
 
-    private async Task<Expr> BinaryAsync(Func<Task<Expr>> operand, params TokenType[] operators)
+    private async Task<Expr> LeftAssocTwoOpsAsync(Func<Expr, Token, Expr, Expr> expression, Func<Task<Expr>> operand, params TokenType[] operators)
     {
         var left = await operand();
 
@@ -123,11 +196,15 @@ public class Parser(List<Token> tokens)
         {
             var op = Previous();
             var right = await operand();
-            left = new Expr.Binary(left, op, right);
+            left = expression(left, op, right);
         }
 
         return left;
     }
+
+    private Task<Expr> BinaryAsync(Func<Task<Expr>> operand, params TokenType[] operators) => LeftAssocTwoOpsAsync((l, o, r) => new Expr.Binary(l, o, r), operand, operators);
+
+    private Task<Expr> LogicalAsync(Func<Task<Expr>> operand, params TokenType[] operators) => LeftAssocTwoOpsAsync((l, o, r) => new Expr.Logical(l, o, r), operand, operators);
 
     private Task<Expr> CommaAsync() => BinaryAsync(AssignmentAsync, COMMA);
 
@@ -155,13 +232,13 @@ public class Parser(List<Token> tokens)
 
     private async Task<Expr> TernaryAsync()
     {
-        var left = await EqualityAsync();
+        var left = await OrAsync();
         
         if (Match(QUESTION_MARK))
         {
             var leftOp = Previous();
 
-            var middle = await EqualityAsync();
+            var middle = await OrAsync();
 
             var rightOp = await ConsumeAsync(COLON, "Expect ':'.");
 
@@ -172,6 +249,10 @@ public class Parser(List<Token> tokens)
 
         return left;
     }
+
+    private Task<Expr> OrAsync() => LogicalAsync(AndAsync, OR);
+
+    private Task<Expr> AndAsync() => LogicalAsync(EqualityAsync, AND);
 
     private Task<Expr> EqualityAsync() => BinaryAsync(ComparisonAsync, BANG_EQUAL, EQUAL_EQUAL);
 

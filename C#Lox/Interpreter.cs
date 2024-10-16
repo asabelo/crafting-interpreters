@@ -74,6 +74,22 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return expr.Value;
     }
 
+    public object? VisitLogicalExpr(Expr.Logical expr)
+    {
+        var left = Evaluate(expr.Left);
+
+        if (expr.Operator.Type == TokenType.OR)
+        {
+            if (IsTruthy(left)) return left;
+        }
+        else
+        {
+            if (!IsTruthy(left)) return left;
+        }
+
+        return Evaluate(expr.Right);
+    }
+
     public object? VisitUnaryExpr(Expr.Unary expr)
     {
         var right = Evaluate(expr.Expression);
@@ -100,6 +116,22 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return value;
     }
 
+    public Void VisitIfStmt(Stmt.If stmt)
+    {
+        var condition = Evaluate(stmt.Condition);
+
+        if (IsTruthy(condition))
+        {
+            Execute(stmt.ThenBranch);
+        }
+        else if (stmt.ElseBranch is not null)
+        {
+            Execute(stmt.ElseBranch);
+        }
+
+        return Void.Value;
+    }
+
     public Void VisitExpressionStmt(Stmt.Expression stmt)
     {
         _ = Evaluate(stmt.InnerExpression);
@@ -122,6 +154,16 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 
         environment.Define(stmt.Name.Lexeme, value);
         
+        return Void.Value;
+    }
+
+    public Void VisitWhileStmt(Stmt.While stmt)
+    {
+        while (IsTruthy(Evaluate(stmt.Condition)))
+        {
+            Execute(stmt.Body);
+        }
+
         return Void.Value;
     }
 

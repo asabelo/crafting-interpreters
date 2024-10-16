@@ -8,6 +8,8 @@ public abstract record Stmt
         R VisitExpressionStmt(Expression stmt);
         R VisitPrintStmt(Print stmt);
         R VisitVarStmt(Var stmt);
+        R VisitIfStmt(If stmt);
+        R VisitWhileStmt(While stmt);
     }
 
     public record Block(List<Stmt> Statements) : Stmt
@@ -39,6 +41,22 @@ public abstract record Stmt
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitVarStmt(this);
+        }
+    }
+
+    public record If(Expr Condition, Stmt ThenBranch, Stmt? ElseBranch) : Stmt
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitIfStmt(this);
+        }
+    }
+
+    public record While(Expr Condition, Stmt Body) : Stmt
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitWhileStmt(this);
         }
     }
 
