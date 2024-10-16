@@ -12,6 +12,8 @@ public abstract class Expr
 
         R VisitLiteralExpr(Literal expr);
 
+        R VisitLogicalExpr(Logical expr);
+
         R VisitUnaryExpr(Unary expr);
 
         R VisitVariableExpr(Variable expr);
@@ -81,6 +83,25 @@ public abstract class Expr
         }
 
         public readonly object? value;
+    }
+
+    public class Logical : Expr 
+    {
+        public Logical(Expr left, Token @operator, Expr right)
+        {
+            this.left = left;
+            this.@operator = @operator;
+            this.right = right;
+        }
+
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitLogicalExpr(this);
+        }
+
+        public readonly Expr left;
+        public readonly Token @operator;
+        public readonly Expr right;
     }
 
     public class Unary : Expr 

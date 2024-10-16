@@ -63,6 +63,22 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return expr.value;
     }
 
+    public object? VisitLogicalExpr(Expr.Logical expr)
+    {
+        var left = Evaluate(expr.left);
+
+        if (expr.@operator.Type == TokenType.OR)
+        {
+            if (IsTruthy(left)) return left;
+        }
+        else
+        {
+            if (!IsTruthy(left)) return left;
+        }
+
+        return Evaluate(expr.right);
+    }
+
     public object? VisitUnaryExpr(Expr.Unary expr)
     {
         var right = Evaluate(expr.right);

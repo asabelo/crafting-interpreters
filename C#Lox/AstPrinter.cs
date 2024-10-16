@@ -29,6 +29,11 @@ public class AstPrinter : Expr.IVisitor<string>
         return expr.value?.ToString() ?? "nil";
     }
 
+    public string VisitLogicalExpr(Expr.Logical expr)
+    {
+        return Parenthesize(expr.@operator.Lexeme, expr.left, expr.right);
+    }
+
     public string VisitUnaryExpr(Expr.Unary expr)
     {
         return Parenthesize(expr.@operator.Lexeme, expr.right);

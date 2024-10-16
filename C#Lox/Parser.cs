@@ -140,7 +140,7 @@ public class Parser
 
     private async Task<Expr> AssignmentAsync()
     {
-        var expr = await EqualityAsync();
+        var expr = await OrAsync();
 
         if (Match(EQUAL))
         {
@@ -155,6 +155,34 @@ public class Parser
             }
 
             await ErrorAsync(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    private async Task<Expr> OrAsync()
+    {
+        var expr = await AndAsync();
+
+        while (Match(OR))
+        {
+            var @operator = Previous();
+            var right = await AndAsync();
+            expr = new Expr.Logical(expr, @operator, right);
+        }
+
+        return expr;
+    }
+
+    private async Task<Expr> AndAsync()
+    {
+        var expr = await EqualityAsync();
+
+        while (Match(AND))
+        {
+            var @operator = Previous();
+            var right = await EqualityAsync();
+            expr = new Expr.Logical(expr, @operator, right);
         }
 
         return expr;
