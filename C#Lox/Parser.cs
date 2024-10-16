@@ -50,6 +50,10 @@ public class Parser
 
     private async Task<Stmt> StatementAsync()
     {
+        if (Match(IF))
+        {
+            return await IfStatementAsync();
+        }
         if (Match(PRINT))
         {
             return await PrintStatementAsync();
@@ -79,6 +83,20 @@ public class Parser
         await ConsumeAsync(RIGHT_BRACE, "Expect '}' after block.");
 
         return statements;
+    }
+
+    private async Task<Stmt> IfStatementAsync()
+    {
+        await ConsumeAsync(LEFT_PAREN, "Expect '(' after 'if'.");
+
+        var condition = await ExpressionAsync();
+
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after if condition.");
+
+        var thenBranch = await StatementAsync();
+        var elseBranch = Match(ELSE) ? await StatementAsync() : null;
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     private async Task<Stmt> PrintStatementAsync()

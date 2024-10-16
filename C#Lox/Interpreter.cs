@@ -89,6 +89,22 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return value;
     }
 
+    public Void VisitIfStmt(Stmt.If stmt)
+    {
+        var condition = Evaluate(stmt.condition);
+
+        if (IsTruthy(condition))
+        {
+            Execute(stmt.thenBranch);
+        }
+        else if (stmt.elseBranch is not null)
+        {
+            Execute(stmt.elseBranch);
+        }
+
+        return Void.Value;
+    }
+
     public Void VisitExpressionStmt(Stmt.Expression stmt)
     {
         _ = Evaluate(stmt.expression);
