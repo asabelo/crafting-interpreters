@@ -14,6 +14,11 @@ public class Environment
     {
         if (values.TryGetValue(name.Lexeme, out var value))
         {
+            if (value is Void)
+            {
+                throw new RuntimeError(name, $"Uninitialized variable '{name.Lexeme}'.");
+            }
+
             return value;
         }
 

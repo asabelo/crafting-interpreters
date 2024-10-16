@@ -2,12 +2,6 @@ using System.Globalization;
 
 namespace Lox;
 
-public sealed class Void
-{
-    public static readonly Void Value = new();
-    private Void() {}
-}
-
 public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 {
     private Environment environment = new();
@@ -124,7 +118,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 
     public Void VisitVarStmt(Stmt.Var stmt)
     {
-        var value = stmt.Initializer is Expr e ? Evaluate(e) : null;
+        var value = stmt.Initializer is Expr e ? Evaluate(e) : Void.Value;
 
         environment.Define(stmt.Name.Lexeme, value);
         
