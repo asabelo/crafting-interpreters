@@ -146,6 +146,16 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return Void.Value;
     }
 
+    public Void VisitWhileStmt(Stmt.While stmt)
+    {
+        while (IsTruthy(Evaluate(stmt.condition)))
+        {
+            Execute(stmt.body);
+        }
+
+        return Void.Value;
+    }
+
     public Void VisitBlockStmt(Stmt.Block stmt)
     {
         ExecuteBlock(stmt.statements, new Environment(environment));

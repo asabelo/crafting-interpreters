@@ -50,10 +50,6 @@ public class Parser
 
     private async Task<Stmt> StatementAsync()
     {
-        if (Match(IF))
-        {
-            return await IfStatementAsync();
-        }
         if (Match(PRINT))
         {
             return await PrintStatementAsync();
@@ -62,7 +58,19 @@ public class Parser
         {
             return new Stmt.Block(await BlockAsync());
         }
-
+        else if (Match(IF))
+        {
+            return await IfStatementAsync();
+        }
+        else if (Match(WHILE))
+        {
+            return await WhileStatementAsync();
+        }
+        else if (Match(FOR))
+        {
+            return await ForStatementAsync();
+        }
+        
         return await ExpressionStatementAsync();
     }
 
@@ -122,6 +130,53 @@ public class Parser
         await ConsumeAsync(SEMICOLON, "Expect ';' after variable declaration.");
 
         return new Stmt.Var(name, initializer);
+    }
+
+    private async Task<Stmt> WhileStatementAsync()
+    {
+        await ConsumeAsync(LEFT_PAREN, "Expect '(' after 'while'.");
+
+        var condition = await ExpressionAsync();
+
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after condition.");
+
+        var body = await StatementAsync();
+
+        return new Stmt.While(condition, body);
+    }
+
+    private async Task<Stmt> ForStatementAsync()
+    {
+        await ConsumeAsync(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt? initializer;
+        if (Match(SEMICOLON)) initializer = null;
+        else if (Match(VAR))  initializer = await VarDeclarationAsync();
+        else                  initializer = await ExpressionStatementAsync();
+        
+        Expr? condition = null;
+        if (!Check(SEMICOLON)) condition = await ExpressionAsync();
+        await ConsumeAsync(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expr? increment = null;
+        if (!Check(RIGHT_PAREN)) increment = await ExpressionAsync();
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        Stmt body = await StatementAsync();
+
+        if (increment is not null)
+        {
+            body = new Stmt.Block([body, new Stmt.Expression(increment)]);
+        }
+
+        body = new Stmt.While(condition ?? new Expr.Literal(true), body);
+
+        if (initializer is not null)
+        {
+            body = new Stmt.Block([initializer, body]);
+        }
+
+        return body;
     }
 
     private async Task<Stmt> ExpressionStatementAsync()
