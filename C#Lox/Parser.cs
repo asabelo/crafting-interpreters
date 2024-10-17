@@ -18,7 +18,7 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         
         while (!IsAtEnd())
         {
-            var declaration = await DeclarationAsync();
+            var declaration = await DeclarationAsync(breakable: false);
 
             if (declaration is not null)
             {
@@ -29,13 +29,13 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         return statements;
     }
 
-    private async Task<Stmt?> DeclarationAsync()
+    private async Task<Stmt?> DeclarationAsync(bool breakable)
     {
         try
         {
             if (Match(VAR)) return await VarDeclarationAsync();
 
-            return await StatementAsync();
+            return await StatementAsync(breakable);
         } 
         catch (ParseError)
         {
@@ -45,7 +45,7 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         }
     }
 
-    private async Task<Stmt> StatementAsync()
+    private async Task<Stmt> StatementAsync(bool breakable)
     {
         if (Match(PRINT))
         {
@@ -53,11 +53,11 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         }
         else if (Match(LEFT_BRACE))
         {
-            return new Stmt.Block(await BlockAsync());
+            return new Stmt.Block(await BlockAsync(breakable));
         }
         else if (Match(IF))
         {
-            return await IfStatementAsync();
+            return await IfStatementAsync(breakable);
         }
         else if (Match(WHILE))
         {
@@ -67,17 +67,28 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         {
             return await ForStatementAsync();
         }
+        else if (Match(BREAK))
+        {
+            if (!breakable)
+            {
+                throw await ErrorAsync(Previous(), "Cannot break outside a loop.");
+            }
+
+            await ConsumeAsync(SEMICOLON, "Expect ';' after 'break'.");
+
+            return new Stmt.Break();
+        }
         
         return await ExpressionStatementAsync();
     }
 
-    private async Task<List<Stmt>> BlockAsync()
+    private async Task<List<Stmt>> BlockAsync(bool breakable)
     {
         List<Stmt> statements = [];
 
         while (!Check(RIGHT_BRACE) && !IsAtEnd())
         {
-            var declaration = await DeclarationAsync();
+            var declaration = await DeclarationAsync(breakable);
 
             if (declaration is not null)
             {
@@ -90,7 +101,7 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         return statements;
     }
 
-    private async Task<Stmt> IfStatementAsync()
+    private async Task<Stmt> IfStatementAsync(bool breakable)
     {
         await ConsumeAsync(LEFT_PAREN, "Expect '(' after 'if'.");
 
@@ -98,8 +109,8 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
         await ConsumeAsync(RIGHT_PAREN, "Expect ')' after if condition.");
 
-        var thenBranch = await StatementAsync();
-        var elseBranch = Match(ELSE) ? await StatementAsync() : null;
+        var thenBranch = await StatementAsync(breakable);
+        var elseBranch = Match(ELSE) ? await StatementAsync(breakable) : null;
 
         return new Stmt.If(condition, thenBranch, elseBranch);
     }
@@ -137,7 +148,7 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
         await ConsumeAsync(RIGHT_PAREN, "Expect ')' after condition.");
 
-        var body = await StatementAsync();
+        var body = await StatementAsync(breakable: true);
 
         return new Stmt.While(condition, body);
     }
@@ -159,7 +170,7 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         if (!Check(RIGHT_PAREN)) increment = await ExpressionAsync();
         await ConsumeAsync(RIGHT_PAREN, "Expect ')' after for clauses.");
 
-        Stmt body = await StatementAsync();
+        Stmt body = await StatementAsync(breakable: true);
 
         if (increment is not null)
         {

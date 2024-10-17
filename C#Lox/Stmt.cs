@@ -10,6 +10,7 @@ public abstract record Stmt
         R VisitVarStmt(Var stmt);
         R VisitIfStmt(If stmt);
         R VisitWhileStmt(While stmt);
+        R VisitBreakStmt(Break stmt);
     }
 
     public record Block(List<Stmt> Statements) : Stmt
@@ -57,6 +58,14 @@ public abstract record Stmt
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitWhileStmt(this);
+        }
+    }
+
+    public record Break() : Stmt
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitBreakStmt(this);
         }
     }
 

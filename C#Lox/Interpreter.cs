@@ -4,6 +4,8 @@ namespace Lox;
 
 public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 {
+    private class BreakStmtException : Exception { } // for control flow :)
+
     private Environment environment = new();
 
     public async Task Interpret(List<Stmt> statements)
@@ -159,10 +161,14 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 
     public Void VisitWhileStmt(Stmt.While stmt)
     {
-        while (IsTruthy(Evaluate(stmt.Condition)))
+        try
         {
-            Execute(stmt.Body);
+            while (IsTruthy(Evaluate(stmt.Condition)))
+            {
+                Execute(stmt.Body);
+            }
         }
+        catch (BreakStmtException) { }
 
         return Void.Value;
     }
@@ -172,6 +178,11 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         ExecuteBlock(stmt.Statements, new Environment(environment));
 
         return Void.Value;
+    }
+
+    public Void VisitBreakStmt(Stmt.Break stmt)
+    {
+        throw new BreakStmtException();
     }
 
     private static double CheckNumber(Token @operator, object? operand)

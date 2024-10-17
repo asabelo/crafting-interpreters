@@ -38,7 +38,8 @@ public class GenerateAst
                 "Print      : Expr InnerExpression",
                 "Var        : Token Name, Expr? Initializer",
                 "If         : Expr Condition, Stmt ThenBranch, Stmt? ElseBranch",
-                "While      : Expr Condition, Stmt Body"
+                "While      : Expr Condition, Stmt Body",
+                "Break      :"
             ]
         );
     }
@@ -88,8 +89,6 @@ public class GenerateAst
 
     private static async Task DefineTypeAsync(StreamWriter writer, string baseName, string className, string fieldList)
     {
-        var fields = fieldList.Split(", ");
-
         await writer.WriteLineAsync();
         await writer.WriteLineAsync($"    public record {className}({fieldList}) : {baseName}");
         await writer.WriteLineAsync( "    {");
