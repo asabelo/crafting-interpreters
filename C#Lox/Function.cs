@@ -16,7 +16,14 @@ public class Function(Stmt.Function declaration) : ICallable
             environment.Define(declaration.Params[i].Lexeme, arguments[i]);
         }
 
-        interpreter.ExecuteBlock(declaration.Body, environment);
+        try
+        {
+            interpreter.ExecuteBlock(declaration.Body, environment);
+        }
+        catch (ReturnStmtException ret)
+        {
+            return ret.Value;
+        }
 
         return null;
     }

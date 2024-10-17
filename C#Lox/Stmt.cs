@@ -14,6 +14,8 @@ public abstract class Stmt
 
         R VisitPrintStmt(Print stmt);
 
+        R VisitReturnStmt(Return stmt);
+
         R VisitVarStmt(Var stmt);
 
         R VisitWhileStmt(While stmt);
@@ -100,6 +102,23 @@ public abstract class Stmt
         }
 
         public readonly Expr expression;
+    }
+
+    public class Return : Stmt 
+    {
+        public Return(Token Keyword, Expr? Value)
+        {
+            this.Keyword = Keyword;
+            this.Value = Value;
+        }
+
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitReturnStmt(this);
+        }
+
+        public readonly Token Keyword;
+        public readonly Expr? Value;
     }
 
     public class Var : Stmt 

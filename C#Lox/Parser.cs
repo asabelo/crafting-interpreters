@@ -72,6 +72,10 @@ public class Parser
         {
             return await ForStatementAsync();
         }
+        else if (Match(RETURN))
+        {
+            return await ReturnStatementAsync();
+        }
         
         return await ExpressionStatementAsync();
     }
@@ -116,6 +120,17 @@ public class Parser
         await ConsumeAsync(SEMICOLON, "Expect ';' after value.");
 
         return new Stmt.Print(value);
+    }
+
+    private async Task<Stmt> ReturnStatementAsync()
+    {
+        var keyword = Previous();
+
+        var value = Check(SEMICOLON) ? null : await ExpressionAsync();
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after return value.");
+
+        return new Stmt.Return(keyword, value);
     }
 
     private async Task<Stmt> VarDeclarationAsync()

@@ -10,7 +10,7 @@ public sealed class Void
 
 public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 {
-    public Environment Globals { get; } = new Environment();
+    public readonly Environment Globals = new();
     private Environment environment;
 
     public Interpreter()
@@ -175,7 +175,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
     public Void VisitFunctionStmt(Stmt.Function stmt)
     {
         var function = new Function(stmt);
-        
+
         environment.Define(stmt.Name.Lexeme, function);
 
         return Void.Value;
@@ -188,6 +188,13 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         Console.WriteLine(Stringify(value));
 
         return Void.Value;
+    }
+
+    public Void VisitReturnStmt(Stmt.Return stmt)
+    {
+        var value = stmt.Value is null ? null : Evaluate(stmt.Value);
+
+        throw new ReturnStmtException(value);
     }
 
     public Void VisitVarStmt(Stmt.Var stmt)
