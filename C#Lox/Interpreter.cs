@@ -10,7 +10,27 @@ public sealed class Void
 
 public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 {
-    private Environment environment = new();
+    public Environment Globals { get; } = new Environment();
+    private Environment environment;
+
+    public Interpreter()
+    {
+        Globals.Define("clock", new ClockCallable());
+
+        environment = Globals;
+    }
+
+    private class ClockCallable : ICallable
+    {
+        public int Arity() => 0;
+
+        public object? Call(Interpreter interpreter, List<object?> arguments)
+        {
+            return TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds;
+        }
+
+        public override string ToString() => "<native fn>";
+    }
 
     public async Task Interpret(List<Stmt> statements)
     {
@@ -51,6 +71,30 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 
             _ => throw new RuntimeError(expr.@operator, "Unexpected error.")
         };
+    }
+
+    public object? VisitCallExpr(Expr.Call expr)
+    {
+        var callee = Evaluate(expr.Callee);
+
+        var arguments = new List<object?>();
+
+        foreach (var argument in expr.Arguments)
+        {
+            arguments.Add(Evaluate(argument));
+        }
+
+        if (callee is not ICallable function)
+        {
+            throw new RuntimeError(expr.Paren, "Can only call functions and classes.");
+        }
+
+        if (arguments.Count is int argCount && function.Arity() is int arity && argCount != arity)
+        {
+            throw new RuntimeError(expr.Paren, $"Expected {arity} arguments but got {argCount}.");
+        }
+
+        return function.Call(this, arguments);
     }
 
     public object? VisitGroupingExpr(Expr.Grouping expr)
@@ -124,6 +168,15 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
     public Void VisitExpressionStmt(Stmt.Expression stmt)
     {
         _ = Evaluate(stmt.expression);
+
+        return Void.Value;
+    }
+
+    public Void VisitFunctionStmt(Stmt.Function stmt)
+    {
+        var function = new Function(stmt);
+        
+        environment.Define(stmt.Name.Lexeme, function);
 
         return Void.Value;
     }
@@ -207,7 +260,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         statement.Accept(this);
     }
 
-    private void ExecuteBlock(List<Stmt> statements, Environment environment)
+    public void ExecuteBlock(List<Stmt> statements, Environment environment)
     {
         var previousEnvironment = this.environment;
 

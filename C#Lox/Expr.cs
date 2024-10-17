@@ -8,6 +8,8 @@ public abstract class Expr
 
         R VisitBinaryExpr(Binary expr);
 
+        R VisitCallExpr(Call expr);
+
         R VisitGroupingExpr(Grouping expr);
 
         R VisitLiteralExpr(Literal expr);
@@ -53,6 +55,25 @@ public abstract class Expr
         public readonly Expr left;
         public readonly Token @operator;
         public readonly Expr right;
+    }
+
+    public class Call : Expr 
+    {
+        public Call(Expr Callee, Token Paren, List<Expr> Arguments)
+        {
+            this.Callee = Callee;
+            this.Paren = Paren;
+            this.Arguments = Arguments;
+        }
+
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitCallExpr(this);
+        }
+
+        public readonly Expr Callee;
+        public readonly Token Paren;
+        public readonly List<Expr> Arguments;
     }
 
     public class Grouping : Expr 

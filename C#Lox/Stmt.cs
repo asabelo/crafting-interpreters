@@ -8,6 +8,8 @@ public abstract class Stmt
 
         R VisitExpressionStmt(Expression stmt);
 
+        R VisitFunctionStmt(Function stmt);
+
         R VisitIfStmt(If stmt);
 
         R VisitPrintStmt(Print stmt);
@@ -45,6 +47,25 @@ public abstract class Stmt
         }
 
         public readonly Expr expression;
+    }
+
+    public class Function : Stmt 
+    {
+        public Function(Token Name, List<Token> Params, List<Stmt> Body)
+        {
+            this.Name = Name;
+            this.Params = Params;
+            this.Body = Body;
+        }
+
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitFunctionStmt(this);
+        }
+
+        public readonly Token Name;
+        public readonly List<Token> Params;
+        public readonly List<Stmt> Body;
     }
 
     public class If : Stmt 
