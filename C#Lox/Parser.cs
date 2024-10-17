@@ -2,11 +2,13 @@ using static Lox.TokenType;
 
 namespace Lox;
 
-public class Parser(List<Token> tokens)
+public class Parser(List<Token> tokens, bool fromPrompt)
 {
     private class ParseError : Exception {}
 
     private List<Token> Tokens { get; } = tokens;
+
+    private bool FromPrompt { get; } = fromPrompt;
 
     private int current = 0;
 
@@ -178,9 +180,21 @@ public class Parser(List<Token> tokens)
     {
         var expression = await ExpressionAsync();
 
-        await ConsumeAsync(SEMICOLON, "Expect ';' after expression.");
+        if (FromPrompt && !Check(SEMICOLON))
+        {
+            if (!IsAtEnd())
+            {
+                throw await ErrorAsync(Peek(), "Expect single expression.");
+            }
 
-        return new Stmt.Expression(expression);
+            return new Stmt.Print(expression);
+        }
+        else
+        {
+            await ConsumeAsync(SEMICOLON, "Expect ';' after expression.");
+
+            return new Stmt.Expression(expression);
+        }
     }
 
     private async Task<Expr> ExpressionAsync()
@@ -224,7 +238,7 @@ public class Parser(List<Token> tokens)
                 return new Expr.Assign(name, value);
             }
 
-            await ErrorAsync(equals, "Invalid assignment target.");
+            throw await ErrorAsync(equals, "Invalid assignment target.");
         }
 
         return expr;

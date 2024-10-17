@@ -32,8 +32,8 @@ public static class Lox
     private static async Task RunFileAsync(string filePath)
     {
         var code = await File.ReadAllTextAsync(filePath);
-        
-        await RunAsync(code);
+
+        await RunAsync(code, fromPrompt: false);
 
         if (hadError)
         {
@@ -58,19 +58,19 @@ public static class Lox
 
             if (keepGoing = code is not null)
             {
-                await RunAsync(code!);
+                await RunAsync(code!, fromPrompt: true);
 
                 hadError = false;
             }
         }
     }
 
-    private static async Task RunAsync(string code)
+    private static async Task RunAsync(string code, bool fromPrompt)
     {
         var scanner = new Scanner(code);
         var tokens = await scanner.ScanTokensAsync();
 
-        var parser = new Parser(tokens);
+        var parser = new Parser(tokens, fromPrompt);
         var statements = await parser.ParseAsync();
 
         if (hadError || statements is null) return;
