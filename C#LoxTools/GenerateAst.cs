@@ -25,7 +25,8 @@ public class GenerateAst
                 "Unary    : Token Operator, Expr Expression",
                 "Assign   : Token Name, Expr Value",
                 "Logical  : Expr Left, Token Operator, Expr Right",
-                "Variable : Token Name"
+                "Variable : Token Name",
+                "Lambda   : List<Token> Params, List<Stmt> Body"
             ]
         );
 

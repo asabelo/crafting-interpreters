@@ -160,6 +160,11 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return value;
     }
 
+    public object? VisitLambdaExpr(Expr.Lambda expr)
+    {
+        return new Lambda(expr, environment);
+    }
+
     public Void VisitIfStmt(Stmt.If stmt)
     {
         var condition = Evaluate(stmt.Condition);

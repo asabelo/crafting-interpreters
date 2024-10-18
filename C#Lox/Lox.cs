@@ -75,7 +75,6 @@ public static class Lox
 
         if (hadError || statements is null) return;
 
-        // Console.WriteLine(new AstPrinter().Print(expr));
         await interpreter.Interpret(statements);
     }
 

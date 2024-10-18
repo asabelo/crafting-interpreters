@@ -13,6 +13,7 @@ public abstract record Expr
         R VisitAssignExpr(Assign expr);
         R VisitLogicalExpr(Logical expr);
         R VisitVariableExpr(Variable expr);
+        R VisitLambdaExpr(Lambda expr);
     }
 
     public record Ternary(Expr Left, Token LeftOperator, Expr Middle, Token RightOperator, Expr Right) : Expr
@@ -84,6 +85,14 @@ public abstract record Expr
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitVariableExpr(this);
+        }
+    }
+
+    public record Lambda(List<Token> Params, List<Stmt> Body) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitLambdaExpr(this);
         }
     }
 

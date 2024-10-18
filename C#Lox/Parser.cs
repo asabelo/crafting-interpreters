@@ -33,7 +33,19 @@ public class Parser(List<Token> tokens, bool fromPrompt)
     {
         try
         {
-            if (Match(FUN)) return await FunctionAsync("function");
+            if (Check(FUN))
+            {
+                if (CheckNext(IDENTIFIER))
+                {
+                    await ConsumeAsync(FUN, string.Empty);
+                    
+                    return await FunctionAsync("function");
+                }
+                else
+                {
+                    return await ExpressionStatementAsync();
+                }
+            }
 
             if (Match(VAR)) return await VarDeclarationAsync();
 
@@ -346,6 +358,25 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         return await CallAsync();
     }
 
+    private async Task<Expr> CallAsync()
+    {
+        var expr = await PrimaryAsync();
+
+        while (true)
+        {
+            if (Match(LEFT_PAREN))
+            {
+                expr = await FinishCall(expr);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
     private async Task<Expr> FinishCall(Expr callee)
     {
         var arguments = new List<Expr>();
@@ -369,25 +400,6 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         return new Expr.Call(callee, paren, arguments);
     }
 
-    private async Task<Expr> CallAsync()
-    {
-        var expr = await PrimaryAsync();
-
-        while (true)
-        {
-            if (Match(LEFT_PAREN))
-            {
-                expr = await FinishCall(expr);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return expr;
-    }
-
     private async Task<Expr> PrimaryAsync()
     {
         if (Match(FALSE))
@@ -406,7 +418,11 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         {
             return new Expr.Literal(Previous().Literal);
         }
-        if (Match(IDENTIFIER))
+        else if (Match(FUN))
+        {
+            return await LambdaAsync();
+        }
+        else if (Match(IDENTIFIER))
         {
             return new Expr.Variable(Previous());
         }
@@ -418,6 +434,34 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         }
 
         throw await ErrorAsync(Peek(), "Expect expression.");
+    }
+
+    private async Task<Expr> LambdaAsync()
+    {
+        await ConsumeAsync(LEFT_PAREN, $"Expect '(' after 'fun'.");
+
+        var parameters = new List<Token>();
+
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (parameters.Count > 255)
+                {
+                    _ = await ErrorAsync(Peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.Add(await ConsumeAsync(IDENTIFIER, "Expect paramter name."));
+            }
+            while (Match(COMMA));
+        }
+
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after parameters.");
+        await ConsumeAsync(LEFT_BRACE, $"Expect '{{' before lambda body.");
+
+        var body = await BlockAsync(breakable: false);
+
+        return new Expr.Lambda(parameters, body);
     }
 
     private bool Match(params TokenType[] types)
@@ -448,6 +492,13 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         return Peek().Type == type;
     }
 
+    private bool CheckNext(TokenType type)
+    {
+        if (IsAtEnd()) return false;
+
+        return PeekNext().Type == type;
+    }
+
     private Token Advance()
     {
         if (!IsAtEnd()) current++;
@@ -464,6 +515,19 @@ public class Parser(List<Token> tokens, bool fromPrompt)
     {
         return Tokens[current];
     }
+
+    private Token PeekNext()
+    {
+        if (current + 1 >= Tokens.Count)
+        {
+            return Peek();
+        }
+        else
+        {
+            return Tokens[current + 1];
+        }
+    }
+
 
     private Token Previous() 
     {

@@ -67,4 +67,9 @@ public class AstPrinter : Expr.IVisitor<string>
 
         return builder.ToString();
     }
+
+    public string VisitLambdaExpr(Expr.Lambda expr)
+    {
+        throw new NotImplementedException();
+    }
 }
