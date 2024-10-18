@@ -33,6 +33,8 @@ public class Parser(List<Token> tokens, bool fromPrompt)
     {
         try
         {
+            if (Match(FUN)) return await FunctionAsync("function");
+
             if (Match(VAR)) return await VarDeclarationAsync();
 
             return await StatementAsync(breakable);
@@ -78,6 +80,10 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
             return new Stmt.Break();
         }
+        else if (Match(RETURN))
+        {
+            return await ReturnStatementAsync();
+        }
         
         return await ExpressionStatementAsync();
     }
@@ -122,6 +128,17 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         await ConsumeAsync(SEMICOLON, "Expect ';' after value.");
 
         return new Stmt.Print(value);
+    }
+
+    private async Task<Stmt> ReturnStatementAsync()
+    {
+        var keyword = Previous();
+
+        var value = Check(SEMICOLON) ? null : await ExpressionAsync();
+
+        await ConsumeAsync(SEMICOLON, "Expect ';' after return value.");
+
+        return new Stmt.Return(keyword, value);
     }
 
     private async Task<Stmt> VarDeclarationAsync()
@@ -206,6 +223,36 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
             return new Stmt.Expression(expression);
         }
+    }
+
+    private async Task<Stmt.Function> FunctionAsync(string kind)
+    {
+        var name = await ConsumeAsync(IDENTIFIER, $"Expect {kind} name.");
+
+        await ConsumeAsync(LEFT_PAREN, $"Expect '(' after {kind} name.");
+
+        var parameters = new List<Token>();
+
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (parameters.Count > 255)
+                {
+                    _ = await ErrorAsync(Peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.Add(await ConsumeAsync(IDENTIFIER, "Expect paramter name."));
+            }
+            while (Match(COMMA));
+        }
+
+        await ConsumeAsync(RIGHT_PAREN, "Expect ')' after parameters.");
+        await ConsumeAsync(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+
+        var body = await BlockAsync(breakable: false);
+
+        return new Stmt.Function(name, parameters, body);
     }
 
     private async Task<Expr> ExpressionAsync()
@@ -296,7 +343,49 @@ public class Parser(List<Token> tokens, bool fromPrompt)
             return new Expr.Unary(@operator, right);
         }
 
-        return await PrimaryAsync();
+        return await CallAsync();
+    }
+
+    private async Task<Expr> FinishCall(Expr callee)
+    {
+        var arguments = new List<Expr>();
+
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (arguments.Count >= 255)
+                {
+                    _ = await ErrorAsync(Peek(), "Can't have more than 255 arguments.");
+                }
+
+                arguments.Add(await ExpressionAsync());
+            }
+            while (Match(COMMA));
+        }
+
+        var paren = await ConsumeAsync(RIGHT_PAREN, "Expect ')' after arguments.");
+
+        return new Expr.Call(callee, paren, arguments);
+    }
+
+    private async Task<Expr> CallAsync()
+    {
+        var expr = await PrimaryAsync();
+
+        while (true)
+        {
+            if (Match(LEFT_PAREN))
+            {
+                expr = await FinishCall(expr);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
     }
 
     private async Task<Expr> PrimaryAsync()

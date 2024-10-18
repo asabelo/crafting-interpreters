@@ -6,6 +6,7 @@ public abstract record Expr
     {
         R VisitTernaryExpr(Ternary expr);
         R VisitBinaryExpr(Binary expr);
+        R VisitCallExpr(Call expr);
         R VisitGroupingExpr(Grouping expr);
         R VisitLiteralExpr(Literal expr);
         R VisitUnaryExpr(Unary expr);
@@ -27,6 +28,14 @@ public abstract record Expr
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitBinaryExpr(this);
+        }
+    }
+
+    public record Call(Expr Callee, Token Paren, List<Expr> Arguments) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitCallExpr(this);
         }
     }
 

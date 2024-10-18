@@ -6,8 +6,10 @@ public abstract record Stmt
     {
         R VisitBlockStmt(Block stmt);
         R VisitExpressionStmt(Expression stmt);
+        R VisitFunctionStmt(Function stmt);
         R VisitPrintStmt(Print stmt);
         R VisitVarStmt(Var stmt);
+        R VisitReturnStmt(Return stmt);
         R VisitIfStmt(If stmt);
         R VisitWhileStmt(While stmt);
         R VisitBreakStmt(Break stmt);
@@ -29,6 +31,14 @@ public abstract record Stmt
         }
     }
 
+    public record Function(Token Name, List<Token> Params, List<Stmt> Body) : Stmt
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitFunctionStmt(this);
+        }
+    }
+
     public record Print(Expr InnerExpression) : Stmt
     {
         public override R Accept<R>(IVisitor<R> visitor)
@@ -42,6 +52,14 @@ public abstract record Stmt
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitVarStmt(this);
+        }
+    }
+
+    public record Return(Token Keyword, Expr? Value) : Stmt
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitReturnStmt(this);
         }
     }
 

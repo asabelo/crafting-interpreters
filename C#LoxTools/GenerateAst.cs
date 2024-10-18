@@ -19,6 +19,7 @@ public class GenerateAst
             [
                 "Ternary  : Expr Left, Token LeftOperator, Expr Middle, Token RightOperator, Expr Right",
                 "Binary   : Expr Left, Token Operator, Expr Right",
+                "Call     : Expr Callee, Token Paren, List<Expr> Arguments",
                 "Grouping : Expr Expression",
                 "Literal  : object? Value",
                 "Unary    : Token Operator, Expr Expression",
@@ -35,8 +36,10 @@ public class GenerateAst
             [
                 "Block      : List<Stmt> Statements",
                 "Expression : Expr InnerExpression",
+                "Function   : Token Name, List<Token> Params, List<Stmt> Body",
                 "Print      : Expr InnerExpression",
                 "Var        : Token Name, Expr? Initializer",
+                "Return     : Token Keyword, Expr? Value",
                 "If         : Expr Condition, Stmt ThenBranch, Stmt? ElseBranch",
                 "While      : Expr Condition, Stmt Body",
                 "Break      :"
