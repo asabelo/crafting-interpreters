@@ -174,7 +174,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 
     public Void VisitFunctionStmt(Stmt.Function stmt)
     {
-        var function = new Function(stmt);
+        var function = new Function(stmt, environment);
 
         environment.Define(stmt.Name.Lexeme, function);
 
