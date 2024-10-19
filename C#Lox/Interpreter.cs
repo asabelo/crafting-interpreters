@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Lox;
 
-public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
+public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
 {
     public readonly Environment Globals = new();
     private Environment environment;
@@ -163,7 +163,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return value;
     }
 
-    public Void VisitIfStmt(Stmt.If stmt)
+    public Unit VisitIfStmt(Stmt.If stmt)
     {
         var condition = Evaluate(stmt.condition);
 
@@ -176,65 +176,65 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
             Execute(stmt.elseBranch);
         }
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    public Unit VisitExpressionStmt(Stmt.Expression stmt)
     {
         _ = Evaluate(stmt.expression);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitFunctionStmt(Stmt.Function stmt)
+    public Unit VisitFunctionStmt(Stmt.Function stmt)
     {
         var function = new Function(stmt, environment);
 
         environment.Define(stmt.Name.Lexeme, function);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitPrintStmt(Stmt.Print stmt)
+    public Unit VisitPrintStmt(Stmt.Print stmt)
     {
         var value = Evaluate(stmt.expression);
 
         Console.WriteLine(Stringify(value));
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitReturnStmt(Stmt.Return stmt)
+    public Unit VisitReturnStmt(Stmt.Return stmt)
     {
         var value = stmt.Value is null ? null : Evaluate(stmt.Value);
 
         throw new ReturnStmtException(value);
     }
 
-    public Void VisitVarStmt(Stmt.Var stmt)
+    public Unit VisitVarStmt(Stmt.Var stmt)
     {
         var value = stmt.initializer is Expr e ? Evaluate(e) : null;
 
         environment.Define(stmt.name.Lexeme, value);
         
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitWhileStmt(Stmt.While stmt)
+    public Unit VisitWhileStmt(Stmt.While stmt)
     {
         while (IsTruthy(Evaluate(stmt.condition)))
         {
             Execute(stmt.body);
         }
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitBlockStmt(Stmt.Block stmt)
+    public Unit VisitBlockStmt(Stmt.Block stmt)
     {
         ExecuteBlock(stmt.statements, new Environment(environment));
 
-        return Void.Value;
+        return Unit.Value;
     }
 
     private static double CheckNumber(Token @operator, object? operand)

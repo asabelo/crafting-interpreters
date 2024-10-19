@@ -1,6 +1,6 @@
 namespace Lox;
 
-public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisitor<Void>
+public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisitor<Unit>
 {
     private readonly Interpreter interpreter = interpreter;
 
@@ -88,7 +88,7 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisi
 
 #region Stmt.IVisitor
 
-    public Void VisitBlockStmt(Stmt.Block stmt)
+    public Unit VisitBlockStmt(Stmt.Block stmt)
     {
         BeginScope();
 
@@ -96,10 +96,10 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisi
 
         EndScope();
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitVarStmt(Stmt.Var stmt)
+    public Unit VisitVarStmt(Stmt.Var stmt)
     {
         Declare(stmt.name);
 
@@ -110,43 +110,43 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisi
 
         Define(stmt.name);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitFunctionStmt(Stmt.Function stmt)
+    public Unit VisitFunctionStmt(Stmt.Function stmt)
     {
         Declare(stmt.Name);
         Define(stmt.Name);
 
         ResolveFunction(stmt, FunctionType.FUNCTION);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    public Unit VisitExpressionStmt(Stmt.Expression stmt)
     {
         Resolve(stmt.expression);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitIfStmt(Stmt.If stmt)
+    public Unit VisitIfStmt(Stmt.If stmt)
     {
         Resolve(stmt.condition);
         Resolve(stmt.thenBranch);
         if (stmt.elseBranch is not null) Resolve(stmt.elseBranch);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitPrintStmt(Stmt.Print stmt)
+    public Unit VisitPrintStmt(Stmt.Print stmt)
     {
         Resolve(stmt.expression);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitReturnStmt(Stmt.Return stmt)
+    public Unit VisitReturnStmt(Stmt.Return stmt)
     {
         if (currentFunction == FunctionType.NONE)
         {
@@ -155,15 +155,15 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisi
 
         if (stmt.Value is not null) Resolve(stmt.Value);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitWhileStmt(Stmt.While stmt)
+    public Unit VisitWhileStmt(Stmt.While stmt)
     {
         Resolve(stmt.condition);
         Resolve(stmt.body);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
     #endregion Stmt.IVisitor
@@ -171,7 +171,7 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisi
 
     #region Expr.IVisitor
 
-    public Void VisitVariableExpr(Expr.Variable expr)
+    public Unit VisitVariableExpr(Expr.Variable expr)
     {
         if (scopes.TryPeek(out var scope) && scope.TryGetValue(expr.name.Lexeme, out var defined) && !defined)
         {
@@ -180,58 +180,58 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisi
 
         ResolveLocal(expr, expr.name);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitAssignExpr(Expr.Assign expr)
+    public Unit VisitAssignExpr(Expr.Assign expr)
     {
         Resolve(expr.value);
         ResolveLocal(expr, expr.name);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitBinaryExpr(Expr.Binary expr)
+    public Unit VisitBinaryExpr(Expr.Binary expr)
     {
         Resolve(expr.left);
         Resolve(expr.right);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitCallExpr(Expr.Call expr)
+    public Unit VisitCallExpr(Expr.Call expr)
     {
         Resolve(expr.Callee);
         expr.Arguments.ForEach(Resolve);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitGroupingExpr(Expr.Grouping expr)
+    public Unit VisitGroupingExpr(Expr.Grouping expr)
     {
         Resolve(expr.expression);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitLiteralExpr(Expr.Literal expr)
+    public Unit VisitLiteralExpr(Expr.Literal expr)
     {
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitLogicalExpr(Expr.Logical expr)
+    public Unit VisitLogicalExpr(Expr.Logical expr)
     {
         Resolve(expr.left);
         Resolve(expr.right);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitUnaryExpr(Expr.Unary expr)
+    public Unit VisitUnaryExpr(Expr.Unary expr)
     {
         Resolve(expr.right);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
     #endregion Expr.IVisitor
