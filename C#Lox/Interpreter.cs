@@ -2,12 +2,6 @@ using System.Globalization;
 
 namespace Lox;
 
-public sealed class Void
-{
-    public static readonly Void Value = new();
-    private Void() {}
-}
-
 public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 {
     public readonly Environment Globals = new();
