@@ -10,7 +10,7 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
 
     private enum FunctionType
     {
-        NONE, FUNCTION
+        NONE, FUNCTION, METHOD
     }
 
 #region Private helpers
@@ -103,6 +103,13 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
     {
         Declare(stmt.Name);
         Define(stmt.Name);
+
+        foreach (var method in stmt.Methods)
+        {
+            var declaration = FunctionType.METHOD;
+
+            ResolveFunction(method, declaration);
+        }
 
         return Unit.Value;
     }

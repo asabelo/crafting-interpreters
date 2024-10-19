@@ -13,6 +13,11 @@ public class Instance(Class klass)
             return value;
         }
 
+        if (klass.FindMethod(name.Lexeme) is Function method)
+        {
+            return method;
+        }
+        
         throw new RuntimeError(name, $"Undefined property '{name.Lexeme}'.");
     }
 

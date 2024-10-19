@@ -269,7 +269,13 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
     {
         environment.Define(stmt.Name.Lexeme, null);
 
-        var klass = new Class(stmt.Name.Lexeme);
+        var methods = new Dictionary<string, Function>();
+        foreach (var method in stmt.Methods)
+        {
+            methods[method.Name.Lexeme] = new Function(method, environment);
+        }
+
+        var klass = new Class(stmt.Name.Lexeme, methods);
 
         environment.Assign(stmt.Name, klass);
 

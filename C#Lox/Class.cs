@@ -1,9 +1,16 @@
 
 namespace Lox;
 
-public class Class(string name) : ICallable
+public class Class(string name, Dictionary<string, Function> methods) : ICallable
 {
     public string Name { get; } = name;
+
+    private readonly Dictionary<string, Function> methods = methods;
+
+    public Function? FindMethod(string name)
+    {
+        return methods.GetValueOrDefault(name);
+    }
 
     public int Arity() => 0;
 
