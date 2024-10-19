@@ -1,0 +1,239 @@
+namespace Lox;
+
+public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Void>, Expr.IVisitor<Void>
+{
+    private readonly Interpreter interpreter = interpreter;
+
+    private readonly Stack<Dictionary<string, bool>> scopes = new();
+
+    private FunctionType currentFunction = FunctionType.NONE;
+
+    private enum FunctionType
+    {
+        NONE, FUNCTION
+    }
+
+#region Private helpers
+
+    private void Resolve(Expr expression) => expression.Accept(this);
+
+    private void Resolve(Stmt statement) => statement.Accept(this);
+
+    private void ResolveLocal(Expr expr, Token name)
+    {
+        foreach (var (scope, index) in scopes.Select((s, i) => (s, i)))
+        {
+            if (scope.ContainsKey(name.Lexeme))
+            {
+                interpreter.Resolve(expr, index);
+                return;
+            }
+        }
+    }
+
+    private void ResolveFunction(Stmt.Function function, FunctionType type)
+    {
+        var enclosingFunction = currentFunction;
+        currentFunction = type;
+
+        BeginScope();
+
+        foreach (var param in function.Params)
+        {
+            Declare(param);
+            Define(param);
+        }
+
+        Resolve(function.Body);
+
+        EndScope();
+
+        currentFunction = enclosingFunction;
+    }
+
+    private void BeginScope() => scopes.Push([]);
+
+    private void EndScope() => scopes.Pop();
+
+    private void Declare(Token name)
+    {
+        if (scopes.TryPeek(out var scope))
+        {
+            if (scope.ContainsKey(name.Lexeme))
+            {
+                Lox.Error(name, "Already a variable with this name in this scope.");
+            }
+
+            scope[name.Lexeme] = false;
+        }
+    }
+
+    private void Define(Token name)
+    {
+        if (scopes.TryPeek(out var scope))
+        {
+            scope[name.Lexeme] = true;
+        }
+    }
+
+#endregion Helpers
+
+
+#region Public methods
+
+    public void Resolve(List<Stmt> statements) => statements.ForEach(Resolve);
+
+#endregion Public methods
+
+
+#region Stmt.IVisitor
+
+    public Void VisitBlockStmt(Stmt.Block stmt)
+    {
+        BeginScope();
+
+        Resolve(stmt.statements);
+
+        EndScope();
+
+        return Void.Value;
+    }
+
+    public Void VisitVarStmt(Stmt.Var stmt)
+    {
+        Declare(stmt.name);
+
+        if (stmt.initializer is not null)
+        {
+            Resolve(stmt.initializer);
+        }
+
+        Define(stmt.name);
+
+        return Void.Value;
+    }
+
+    public Void VisitFunctionStmt(Stmt.Function stmt)
+    {
+        Declare(stmt.Name);
+        Define(stmt.Name);
+
+        ResolveFunction(stmt, FunctionType.FUNCTION);
+
+        return Void.Value;
+    }
+
+    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    {
+        Resolve(stmt.expression);
+
+        return Void.Value;
+    }
+
+    public Void VisitIfStmt(Stmt.If stmt)
+    {
+        Resolve(stmt.condition);
+        Resolve(stmt.thenBranch);
+        if (stmt.elseBranch is not null) Resolve(stmt.elseBranch);
+
+        return Void.Value;
+    }
+
+    public Void VisitPrintStmt(Stmt.Print stmt)
+    {
+        Resolve(stmt.expression);
+
+        return Void.Value;
+    }
+
+    public Void VisitReturnStmt(Stmt.Return stmt)
+    {
+        if (currentFunction == FunctionType.NONE)
+        {
+            Lox.Error(stmt.Keyword, "Can't return from top-level code.");
+        }
+
+        if (stmt.Value is not null) Resolve(stmt.Value);
+
+        return Void.Value;
+    }
+
+    public Void VisitWhileStmt(Stmt.While stmt)
+    {
+        Resolve(stmt.condition);
+        Resolve(stmt.body);
+
+        return Void.Value;
+    }
+
+    #endregion Stmt.IVisitor
+
+
+    #region Expr.IVisitor
+
+    public Void VisitVariableExpr(Expr.Variable expr)
+    {
+        if (scopes.TryPeek(out var scope) && scope.TryGetValue(expr.name.Lexeme, out var defined) && !defined)
+        {
+            Lox.Error(expr.name, "Can't read local variable in its own initializer.");
+        }
+
+        ResolveLocal(expr, expr.name);
+
+        return Void.Value;
+    }
+
+    public Void VisitAssignExpr(Expr.Assign expr)
+    {
+        Resolve(expr.value);
+        ResolveLocal(expr, expr.name);
+
+        return Void.Value;
+    }
+
+    public Void VisitBinaryExpr(Expr.Binary expr)
+    {
+        Resolve(expr.left);
+        Resolve(expr.right);
+
+        return Void.Value;
+    }
+
+    public Void VisitCallExpr(Expr.Call expr)
+    {
+        Resolve(expr.Callee);
+        expr.Arguments.ForEach(Resolve);
+
+        return Void.Value;
+    }
+
+    public Void VisitGroupingExpr(Expr.Grouping expr)
+    {
+        Resolve(expr.expression);
+
+        return Void.Value;
+    }
+
+    public Void VisitLiteralExpr(Expr.Literal expr)
+    {
+        return Void.Value;
+    }
+
+    public Void VisitLogicalExpr(Expr.Logical expr)
+    {
+        Resolve(expr.left);
+        Resolve(expr.right);
+
+        return Void.Value;
+    }
+
+    public Void VisitUnaryExpr(Expr.Unary expr)
+    {
+        Resolve(expr.right);
+
+        return Void.Value;
+    }
+
+    #endregion Expr.IVisitor
+
+}
