@@ -2,10 +2,11 @@ using System.Globalization;
 
 namespace Lox;
 
-public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
+public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
 {
     public readonly Environment Globals = new();
     private Environment environment;
+    private readonly Dictionary<Expr, int> locals = [];
 
     public Interpreter()
     {
@@ -148,14 +149,33 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
 
     public object? VisitVariableExpr(Expr.Variable expr)
     {
-        return environment.Get(expr.Name);
+        return LookUpVariable(expr.Name, expr);
+    }
+
+    private object? LookUpVariable(Token name, Expr expr)
+    {
+        if (locals.TryGetValue(expr, out int distance))
+        {
+            return environment.GetAt(distance, name.Lexeme);
+        }
+        else
+        {
+            return Globals.Get(name);
+        }
     }
 
     public object? VisitAssignExpr(Expr.Assign expr)
     {
         var value = Evaluate(expr.Value);
 
-        environment.Assign(expr.Name, value);
+        if (locals.TryGetValue(expr, out int distance))
+        {
+            environment.AssignAt(distance, expr.Name, value);
+        }
+        else
+        {
+            Globals.Assign(expr.Name, value);
+        }
 
         return value;
     }
@@ -165,7 +185,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         return new Lambda(expr, environment);
     }
 
-    public Void VisitIfStmt(Stmt.If stmt)
+    public Unit VisitIfStmt(Stmt.If stmt)
     {
         var condition = Evaluate(stmt.Condition);
 
@@ -178,51 +198,51 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
             Execute(stmt.ElseBranch);
         }
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitExpressionStmt(Stmt.Expression stmt)
+    public Unit VisitExpressionStmt(Stmt.Expression stmt)
     {
         _ = Evaluate(stmt.InnerExpression);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitFunctionStmt(Stmt.Function stmt)
+    public Unit VisitFunctionStmt(Stmt.Function stmt)
     {
         var function = new Function(stmt, environment);
 
         environment.Define(stmt.Name.Lexeme, function);
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitPrintStmt(Stmt.Print stmt)
+    public Unit VisitPrintStmt(Stmt.Print stmt)
     {
         var value = Evaluate(stmt.InnerExpression);
 
         Console.WriteLine(Stringify(value));
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitReturnStmt(Stmt.Return stmt)
+    public Unit VisitReturnStmt(Stmt.Return stmt)
     {
         var value = stmt.Value is null ? null : Evaluate(stmt.Value);
 
         throw new ReturnStmtException(value);
     }
 
-    public Void VisitVarStmt(Stmt.Var stmt)
+    public Unit VisitVarStmt(Stmt.Var stmt)
     {
-        var value = stmt.Initializer is Expr e ? Evaluate(e) : Void.Value;
+        var value = stmt.Initializer is Expr e ? Evaluate(e) : Unit.Value;
 
         environment.Define(stmt.Name.Lexeme, value);
         
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitWhileStmt(Stmt.While stmt)
+    public Unit VisitWhileStmt(Stmt.While stmt)
     {
         try
         {
@@ -233,17 +253,17 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
         }
         catch (BreakStmtException) { }
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitBlockStmt(Stmt.Block stmt)
+    public Unit VisitBlockStmt(Stmt.Block stmt)
     {
         ExecuteBlock(stmt.Statements, new Environment(environment));
 
-        return Void.Value;
+        return Unit.Value;
     }
 
-    public Void VisitBreakStmt(Stmt.Break stmt)
+    public Unit VisitBreakStmt(Stmt.Break stmt)
     {
         throw new BreakStmtException();
     }
@@ -290,6 +310,11 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Void>
     private void Execute(Stmt statement)
     {
         statement.Accept(this);
+    }
+
+    public void Resolve(Expr expr, int depth)
+    {
+        locals[expr] = depth;
     }
 
     public void ExecuteBlock(List<Stmt> statements, Environment environment)

@@ -75,6 +75,11 @@ public static class Lox
 
         if (hadError || statements is null) return;
 
+        var resolver = new Resolver(interpreter);
+        resolver.Resolve(statements);
+
+        if (hadError) return;
+
         await interpreter.Interpret(statements);
     }
 
@@ -100,6 +105,25 @@ public static class Lox
         {
             await ReportAsync(token.Line, $" at '{token.Lexeme}'", message);
         }
+    }
+
+    // hehe
+    public static void Error(Token token, string message)
+    {
+        if (token.Type == TokenType.EOF)
+        {
+            Report(token.Line, " at end", message);
+        }
+        else
+        {
+            Report(token.Line, $" at '{token.Lexeme}'", message);
+        }
+    }
+
+    private static void Report(int line, string where, string message)
+    {
+        Console.Error.WriteLine($"[line {line}] Error{where}: {message}");
+        hadError = true;
     }
 
     public static async Task RuntimeErrorAsync(RuntimeError error)

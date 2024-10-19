@@ -14,7 +14,7 @@ public class Environment
     {
         if (values.TryGetValue(name.Lexeme, out var value))
         {
-            if (value is Void)
+            if (value is Unit)
             {
                 throw new RuntimeError(name, $"Uninitialized variable '{name.Lexeme}'.");
             }
@@ -50,5 +50,27 @@ public class Environment
     public void Define(string name, object? value)
     {
         values[name] = value;
+    }
+
+    private Environment Ancestor(int distance)
+    {
+        var environment = this;
+
+        for (int i = 0; i < distance; ++i) 
+        {
+            environment = environment.enclosing!;
+        }
+
+        return environment;
+    }
+
+    public object? GetAt(int distance, string name)
+    {
+        return Ancestor(distance).values[name];
+    }
+
+    public void AssignAt(int distance, Token name, object? value)
+    {
+        Ancestor(distance).values[name.Lexeme] = value;
     }
 }
