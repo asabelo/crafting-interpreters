@@ -79,7 +79,7 @@ public abstract record Stmt
         }
     }
 
-    public record Break() : Stmt
+    public record Break(Token Keyword) : Stmt
     {
         public override R Accept<R>(IVisitor<R> visitor)
         {

@@ -8,6 +8,8 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
 
     private CallableType currentCallable = CallableType.NONE;
 
+    private bool currentlyBreakable = false;
+
     private enum CallableType
     {
         NONE, FUNCTION, LAMBDA
@@ -36,6 +38,9 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         var enclosingCallable = currentCallable;
         currentCallable = type;
 
+        bool enclosingBreakability = currentlyBreakable;
+        currentlyBreakable = false;
+
         BeginScope();
 
         foreach (var parameter in parameters)
@@ -47,6 +52,8 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         Resolve(body);
 
         EndScope();
+
+        currentlyBreakable = enclosingBreakability;
 
         currentCallable = enclosingCallable;
     }
@@ -161,13 +168,24 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
     public Unit VisitWhileStmt(Stmt.While stmt)
     {
         Resolve(stmt.Condition);
+
+        bool enclosingBreakability = currentlyBreakable;
+        currentlyBreakable = true;
+
         Resolve(stmt.Body);
+
+        currentlyBreakable = enclosingBreakability;
 
         return Unit.Value;
     }
 
     public Unit VisitBreakStmt(Stmt.Break stmt)
     {
+        if (!currentlyBreakable)
+        {
+            Lox.Error(stmt.Keyword, "Can't break outside a loop.");
+        }
+
         return Unit.Value;
     }
 

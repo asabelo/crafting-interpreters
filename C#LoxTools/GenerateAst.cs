@@ -43,7 +43,7 @@ public class GenerateAst
                 "Return     : Token Keyword, Expr? Value",
                 "If         : Expr Condition, Stmt ThenBranch, Stmt? ElseBranch",
                 "While      : Expr Condition, Stmt Body",
-                "Break      :"
+                "Break      : Token Keyword"
             ]
         );
     }
