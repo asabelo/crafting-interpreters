@@ -29,5 +29,5 @@ public class Function(Stmt.Function declaration, Environment closure) : ICallabl
         return null;
     }
 
-    public override string ToString() => $"<fn {declaration.Name.Lexeme}>";
+    public override string ToString() => $"<function {declaration.Name.Lexeme}>";
 }

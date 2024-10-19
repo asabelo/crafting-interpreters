@@ -36,6 +36,8 @@ public class Parser
     {
         try
         {
+            if (Match(CLASS)) return await ClassDeclarationAsync();
+
             if (Match(FUN)) return await FunctionAsync("function");
 
             if (Match(VAR)) return await VarDeclarationAsync();
@@ -48,6 +50,24 @@ public class Parser
 
             return null;
         }
+    }
+
+    private async Task<Stmt> ClassDeclarationAsync()
+    {
+        var name = await ConsumeAsync(IDENTIFIER, "Expect class name.");
+
+        await ConsumeAsync(LEFT_BRACE, "Expect '{' before class body.");
+
+        var methods = new List<Stmt.Function>();
+
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            methods.Add(await FunctionAsync("method"));
+        }
+
+        await ConsumeAsync(RIGHT_BRACE, "Expect '}' after class body.");
+
+        return new Stmt.Class(name, methods);
     }
 
     private async Task<Stmt> StatementAsync()

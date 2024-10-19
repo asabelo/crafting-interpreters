@@ -99,6 +99,14 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         return Unit.Value;
     }
 
+    public Unit VisitClassStmt(Stmt.Class stmt)
+    {
+        Declare(stmt.Name);
+        Define(stmt.Name);
+
+        return Unit.Value;
+    }
+
     public Unit VisitVarStmt(Stmt.Var stmt)
     {
         Declare(stmt.name);

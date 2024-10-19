@@ -237,6 +237,17 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         return Unit.Value;
     }
 
+    public Unit VisitClassStmt(Stmt.Class stmt)
+    {
+        environment.Define(stmt.Name.Lexeme, null);
+
+        var klass = new Class(stmt.Name.Lexeme);
+
+        environment.Assign(stmt.Name, klass);
+
+        return Unit.Value;
+    }
+
     private static double CheckNumber(Token @operator, object? operand)
     {
         if (operand is double number) return number;
