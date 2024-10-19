@@ -20,6 +20,8 @@ public abstract class Expr
 
         R VisitSetExpr(Set expr);
 
+        R VisitThisExpr(This expr);
+
         R VisitUnaryExpr(Unary expr);
 
         R VisitVariableExpr(Variable expr);
@@ -163,6 +165,21 @@ public abstract class Expr
         public readonly Expr Object;
         public readonly Token Name;
         public readonly Expr Value;
+    }
+
+    public class This : Expr 
+    {
+        public This(Token Keyword)
+        {
+            this.Keyword = Keyword;
+        }
+
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitThisExpr(this);
+        }
+
+        public readonly Token Keyword;
     }
 
     public class Unary : Expr 

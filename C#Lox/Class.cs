@@ -12,11 +12,18 @@ public class Class(string name, Dictionary<string, Function> methods) : ICallabl
         return methods.GetValueOrDefault(name);
     }
 
-    public int Arity() => 0;
-
+    public int Arity() => FindMethod("init")?.Arity() ?? 0;
+    
     public object? Call(Interpreter interpreter, List<object?> arguments)
     {
-        return new Instance(this);
+        var instance = new Instance(this);
+
+        if (FindMethod("init") is Function initializer)
+        {
+            initializer.Bind(instance).Call(interpreter, arguments);
+        }
+
+        return instance;
     }
 
     public override string ToString() => $"<class {Name}>";

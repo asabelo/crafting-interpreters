@@ -146,6 +146,11 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         return value;
     }
 
+    public object? VisitThisExpr(Expr.This expr)
+    {
+        return LookUpVariable(expr.Keyword, expr);
+    }
+
     public object? VisitUnaryExpr(Expr.Unary expr)
     {
         var right = Evaluate(expr.right);
@@ -216,7 +221,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
 
     public Unit VisitFunctionStmt(Stmt.Function stmt)
     {
-        var function = new Function(stmt, environment);
+        var function = new Function(stmt, environment, isInitializer: false);
 
         environment.Define(stmt.Name.Lexeme, function);
 
@@ -272,7 +277,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         var methods = new Dictionary<string, Function>();
         foreach (var method in stmt.Methods)
         {
-            methods[method.Name.Lexeme] = new Function(method, environment);
+            methods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
         }
 
         var klass = new Class(stmt.Name.Lexeme, methods);

@@ -15,9 +15,9 @@ public class Instance(Class klass)
 
         if (klass.FindMethod(name.Lexeme) is Function method)
         {
-            return method;
+            return method.Bind(this);
         }
-        
+
         throw new RuntimeError(name, $"Undefined property '{name.Lexeme}'.");
     }
 

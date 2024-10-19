@@ -446,7 +446,11 @@ public class Parser
         {
             return new Expr.Literal(Previous().Literal);
         }
-        if (Match(IDENTIFIER))
+        else if (Match(THIS))
+        {
+            return new Expr.This(Previous());
+        }
+        else if (Match(IDENTIFIER))
         {
             return new Expr.Variable(Previous());
         }
