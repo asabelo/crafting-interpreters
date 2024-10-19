@@ -29,5 +29,5 @@ public class Lambda(Expr.Lambda lambda, Environment closure) : ICallable
         return null;
     }
 
-    public override string ToString() => "<fn>";
+    public override string ToString() => "<lambda>";
 }

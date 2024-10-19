@@ -5,6 +5,7 @@ public abstract record Stmt
     public interface IVisitor<R>
     {
         R VisitBlockStmt(Block stmt);
+        R VisitClassStmt(Class stmt);
         R VisitExpressionStmt(Expression stmt);
         R VisitFunctionStmt(Function stmt);
         R VisitPrintStmt(Print stmt);
@@ -20,6 +21,14 @@ public abstract record Stmt
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitBlockStmt(this);
+        }
+    }
+
+    public record Class(Token Name, List<Function> Methods) : Stmt
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitClassStmt(this);
         }
     }
 

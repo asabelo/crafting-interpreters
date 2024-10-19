@@ -62,5 +62,7 @@ public class Environment(Environment? enclosing = null)
 
     public object? GetAt(int distance, Token name) => Ancestor(distance).Get(name);
 
+    public object GetThis() => Ancestor(0).values["this"]!; // bulletproof
+
     public void AssignAt(int distance, Token name, object? value) => Ancestor(distance).Assign(name, value);
 }

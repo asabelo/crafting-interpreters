@@ -7,8 +7,11 @@ public abstract record Expr
         R VisitTernaryExpr(Ternary expr);
         R VisitBinaryExpr(Binary expr);
         R VisitCallExpr(Call expr);
+        R VisitGetExpr(Get expr);
         R VisitGroupingExpr(Grouping expr);
         R VisitLiteralExpr(Literal expr);
+        R VisitSetExpr(Set expr);
+        R VisitThisExpr(This expr);
         R VisitUnaryExpr(Unary expr);
         R VisitAssignExpr(Assign expr);
         R VisitLogicalExpr(Logical expr);
@@ -40,6 +43,14 @@ public abstract record Expr
         }
     }
 
+    public record Get(Expr Object, Token Name) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitGetExpr(this);
+        }
+    }
+
     public record Grouping(Expr Expression) : Expr
     {
         public override R Accept<R>(IVisitor<R> visitor)
@@ -53,6 +64,22 @@ public abstract record Expr
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitLiteralExpr(this);
+        }
+    }
+
+    public record Set(Expr Object, Token Name, Expr Value) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitSetExpr(this);
+        }
+    }
+
+    public record This(Token Keyword) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitThisExpr(this);
         }
     }
 

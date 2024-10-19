@@ -1,10 +1,22 @@
 
 namespace Lox;
 
-public class Function(Stmt.Function declaration, Environment closure) : ICallable
+public class Function(Stmt.Function declaration, Environment closure, bool isInitializer) : ICallable
 {
     private readonly Stmt.Function declaration = declaration;
+
     private readonly Environment closure = closure;
+
+    private readonly bool isInitializer = isInitializer;
+
+    public Function Bind(Instance instance)
+    {
+        var environment = new Environment(closure);
+
+        environment.Define("this", instance);
+
+        return new Function(declaration, environment, isInitializer);
+    }
 
     public int Arity() => declaration.Params.Count;
 
@@ -23,11 +35,15 @@ public class Function(Stmt.Function declaration, Environment closure) : ICallabl
         }
         catch (ReturnStmtException ret)
         {
+            if (isInitializer) return closure.GetThis();
+
             return ret.Value;
         }
+
+        if (isInitializer) return closure.GetThis();
 
         return null;
     }
 
-    public override string ToString() => $"<fn {declaration.Name.Lexeme}>";
+    public override string ToString() => $"<function {declaration.Name.Lexeme}>";
 }

@@ -46,6 +46,8 @@ public class Parser(List<Token> tokens, bool fromPrompt)
                     return await ExpressionStatementAsync();
                 }
             }
+            
+            if (Match(CLASS)) return await ClassDeclarationAsync();
 
             if (Match(VAR)) return await VarDeclarationAsync();
 
@@ -57,6 +59,24 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
             return null;
         }
+    }
+
+    private async Task<Stmt> ClassDeclarationAsync()
+    {
+        var name = await ConsumeAsync(IDENTIFIER, "Expect class name.");
+
+        await ConsumeAsync(LEFT_BRACE, "Expect '{' before class body.");
+
+        var methods = new List<Stmt.Function>();
+
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            methods.Add(await FunctionAsync("method"));
+        }
+
+        await ConsumeAsync(RIGHT_BRACE, "Expect '}' after class body.");
+
+        return new Stmt.Class(name, methods);
     }
 
     private async Task<Stmt> StatementAsync()
@@ -305,9 +325,11 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
             if (expr is Expr.Variable varExpr)
             {
-                var name = varExpr.Name;
-
-                return new Expr.Assign(name, value);
+                return new Expr.Assign(varExpr.Name, value);
+            }
+            else if (expr is Expr.Get getExpr)
+            {
+                return new Expr.Set(getExpr.Object, getExpr.Name, value);
             }
 
             throw await ErrorAsync(equals, "Invalid assignment target.");
@@ -370,6 +392,12 @@ public class Parser(List<Token> tokens, bool fromPrompt)
             {
                 expr = await FinishCall(expr);
             }
+            else if (Match(DOT))
+            {
+                var name = await ConsumeAsync(IDENTIFIER, "Expect property name after '.'.");
+
+                expr = new Expr.Get(expr, name);
+            }
             else
             {
                 break;
@@ -423,6 +451,10 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         else if (Match(FUN))
         {
             return await LambdaAsync();
+        }
+        else if (Match(THIS))
+        {
+            return new Expr.This(Previous());
         }
         else if (Match(IDENTIFIER))
         {

@@ -8,11 +8,18 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
 
     private CallableType currentCallable = CallableType.NONE;
 
+    private ClassType currentClass = ClassType.NONE;
+
     private bool currentlyBreakable = false;
 
     private enum CallableType
     {
-        NONE, FUNCTION, LAMBDA
+        NONE, LAMBDA, FUNCTION, METHOD, INITIALIZER
+    }
+
+    private enum ClassType
+    {
+        NONE, CLASS
     }
 
 #region Private helpers
@@ -106,6 +113,31 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         return Unit.Value;
     }
 
+    public Unit VisitClassStmt(Stmt.Class stmt)
+    {
+        var enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
+        Declare(stmt.Name);
+        Define(stmt.Name);
+
+        BeginScope();
+        scopes.Peek()["this"] = true;
+
+        foreach (var method in stmt.Methods)
+        {
+            var declaration = method.Name.Lexeme == "init" ? CallableType.INITIALIZER : CallableType.METHOD;
+
+            ResolveCallable(method.Params, method.Body, declaration);
+        }
+
+        EndScope();
+
+        currentClass = enclosingClass;
+
+        return Unit.Value;
+    }
+
     public Unit VisitVarStmt(Stmt.Var stmt)
     {
         Declare(stmt.Name);
@@ -160,7 +192,15 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
             Lox.Error(stmt.Keyword, "Can't return from top-level code.");
         }
 
-        if (stmt.Value is not null) Resolve(stmt.Value);
+        if (stmt.Value is not null)
+        {
+            if (currentCallable == CallableType.INITIALIZER)
+            {
+                Lox.Error(stmt.Keyword, "Can't return a value from an initializer.");
+            }
+            
+            Resolve(stmt.Value);
+        }
 
         return Unit.Value;
     }
@@ -239,6 +279,13 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         return Unit.Value;
     }
 
+    public Unit VisitGetExpr(Expr.Get expr)
+    {
+        Resolve(expr.Object);
+
+        return Unit.Value;
+    }
+
     public Unit VisitGroupingExpr(Expr.Grouping expr)
     {
         Resolve(expr.Expression);
@@ -259,6 +306,28 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         return Unit.Value;
     }
 
+    public Unit VisitSetExpr(Expr.Set expr)
+    {
+        Resolve(expr.Value);
+        Resolve(expr.Object);
+
+        return Unit.Value;
+    }
+
+    public Unit VisitThisExpr(Expr.This expr)
+    {
+        if (currentClass == ClassType.NONE)
+        {
+            Lox.Error(expr.Keyword, "Can't use 'this' outside a class.");
+        }
+        else
+        {
+            ResolveLocal(expr, expr.Keyword);
+        }
+
+        return Unit.Value;
+    }
+
     public Unit VisitUnaryExpr(Expr.Unary expr)
     {
         Resolve(expr.Expression);
@@ -274,5 +343,4 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
     }
 
     #endregion Expr.IVisitor
-
 }

@@ -109,6 +109,18 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         return function.Call(this, arguments);
     }
 
+    public object? VisitGetExpr(Expr.Get expr)
+    {
+        var obj = Evaluate(expr.Object);
+
+        if (obj is Instance instance)
+        {
+            return instance.Get(expr.Name);
+        }
+
+        throw new RuntimeError(expr.Name, "Only instances have properties.");
+    }
+
     public object? VisitGroupingExpr(Expr.Grouping expr)
     {
         return Evaluate(expr.Expression);
@@ -133,6 +145,27 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         }
 
         return Evaluate(expr.Right);
+    }
+
+    public object? VisitSetExpr(Expr.Set expr)
+    {
+        var obj = Evaluate(expr.Object);
+        
+        if (obj is not Instance instance)
+        {
+            throw new RuntimeError(expr.Name, "Only instances have fields");
+        }
+
+        var value = Evaluate(expr.Value);
+
+        instance.Set(expr.Name, value);
+
+        return value;
+    }
+
+    public object? VisitThisExpr(Expr.This expr)
+    {
+        return LookUpVariable(expr.Keyword, expr);
     }
 
     public object? VisitUnaryExpr(Expr.Unary expr)
@@ -210,7 +243,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
 
     public Unit VisitFunctionStmt(Stmt.Function stmt)
     {
-        var function = new Function(stmt, environment);
+        var function = new Function(stmt, environment, isInitializer: false);
 
         environment.Define(stmt.Name.Lexeme, function);
 
@@ -259,6 +292,23 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
     public Unit VisitBlockStmt(Stmt.Block stmt)
     {
         ExecuteBlock(stmt.Statements, new Environment(environment));
+
+        return Unit.Value;
+    }
+    
+    public Unit VisitClassStmt(Stmt.Class stmt)
+    {
+        environment.Define(stmt.Name.Lexeme, null);
+
+        var methods = new Dictionary<string, Function>();
+        foreach (var method in stmt.Methods)
+        {
+            methods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
+        }
+
+        var klass = new Class(stmt.Name.Lexeme, methods);
+
+        environment.Assign(stmt.Name, klass);
 
         return Unit.Value;
     }
