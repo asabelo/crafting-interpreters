@@ -156,7 +156,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
     {
         if (locals.TryGetValue(expr, out int distance))
         {
-            return environment.GetAt(distance, name.Lexeme);
+            return environment.GetAt(distance, name);
         }
         else
         {

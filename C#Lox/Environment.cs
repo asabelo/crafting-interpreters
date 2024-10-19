@@ -1,14 +1,10 @@
 namespace Lox;
 
-public class Environment
+public class Environment(Environment? enclosing = null)
 {
-    private readonly Environment? enclosing;
+    private readonly Environment? enclosing = enclosing;
+    
     private readonly Dictionary<string, object?> values = [];
-
-    public Environment(Environment? enclosing = null)
-    {
-        this.enclosing = enclosing;
-    }
 
     public object? Get(Token name)
     {
@@ -64,13 +60,7 @@ public class Environment
         return environment;
     }
 
-    public object? GetAt(int distance, string name)
-    {
-        return Ancestor(distance).values[name];
-    }
+    public object? GetAt(int distance, Token name) => Ancestor(distance).Get(name);
 
-    public void AssignAt(int distance, Token name, object? value)
-    {
-        Ancestor(distance).values[name.Lexeme] = value;
-    }
+    public void AssignAt(int distance, Token name, object? value) => Ancestor(distance).Assign(name, value);
 }
