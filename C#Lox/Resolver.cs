@@ -215,6 +215,13 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         return Unit.Value;
     }
 
+    public Unit VisitGetExpr(Expr.Get expr)
+    {
+        Resolve(expr.Object);
+
+        return Unit.Value;
+    }
+
     public Unit VisitGroupingExpr(Expr.Grouping expr)
     {
         Resolve(expr.expression);
@@ -231,6 +238,14 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
     {
         Resolve(expr.left);
         Resolve(expr.right);
+
+        return Unit.Value;
+    }
+
+    public Unit VisitSetExpr(Expr.Set expr)
+    {
+        Resolve(expr.Value);
+        Resolve(expr.Object);
 
         return Unit.Value;
     }

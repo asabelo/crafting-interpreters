@@ -92,6 +92,18 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         return function.Call(this, arguments);
     }
 
+    public object? VisitGetExpr(Expr.Get expr)
+    {
+        var obj = Evaluate(expr.Object);
+
+        if (obj is Instance instance)
+        {
+            return instance.Get(expr.Name);
+        }
+
+        throw new RuntimeError(expr.Name, "Only instances have properties.");
+    }
+
     public object? VisitGroupingExpr(Expr.Grouping expr)
     {
         return Evaluate(expr.expression);
@@ -116,6 +128,22 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         }
 
         return Evaluate(expr.right);
+    }
+
+    public object? VisitSetExpr(Expr.Set expr)
+    {
+        var obj = Evaluate(expr.Object);
+        
+        if (obj is not Instance instance)
+        {
+            throw new RuntimeError(expr.Name, "Only instances have fields");
+        }
+
+        var value = Evaluate(expr.Value);
+
+        instance.Set(expr.Name, value);
+
+        return value;
     }
 
     public object? VisitUnaryExpr(Expr.Unary expr)

@@ -20,9 +20,11 @@ public class GenerateAst
                 "Assign   : Token name, Expr value",
                 "Binary   : Expr left, Token @operator, Expr right",
                 "Call     : Expr Callee, Token Paren, List<Expr> Arguments",
+                "Get      : Expr Object, Token Name",
                 "Grouping : Expr expression",
                 "Literal  : object? value",
                 "Logical  : Expr left, Token @operator, Expr right",
+                "Set      : Expr Object, Token Name, Expr Value",
                 "Unary    : Token @operator, Expr right",
                 "Variable : Token name"
             ]

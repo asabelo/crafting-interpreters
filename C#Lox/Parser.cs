@@ -271,9 +271,11 @@ public class Parser
 
             if (expr is Expr.Variable varExpr)
             {
-                var name = varExpr.name;
-
-                return new Expr.Assign(name, value);
+                return new Expr.Assign(varExpr.name, value);
+            }
+            else if (expr is Expr.Get getExpr)
+            {
+                return new Expr.Set(getExpr.Object, getExpr.Name, value);
             }
 
             await ErrorAsync(equals, "Invalid assignment target.");
@@ -410,6 +412,12 @@ public class Parser
             if (Match(LEFT_PAREN))
             {
                 expr = await FinishCall(expr);
+            }
+            else if (Match(DOT))
+            {
+                var name = await ConsumeAsync(IDENTIFIER, "Expect property name after '.'.");
+
+                expr = new Expr.Get(expr, name);
             }
             else
             {

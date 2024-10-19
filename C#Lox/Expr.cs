@@ -10,11 +10,15 @@ public abstract class Expr
 
         R VisitCallExpr(Call expr);
 
+        R VisitGetExpr(Get expr);
+
         R VisitGroupingExpr(Grouping expr);
 
         R VisitLiteralExpr(Literal expr);
 
         R VisitLogicalExpr(Logical expr);
+
+        R VisitSetExpr(Set expr);
 
         R VisitUnaryExpr(Unary expr);
 
@@ -76,6 +80,23 @@ public abstract class Expr
         public readonly List<Expr> Arguments;
     }
 
+    public class Get : Expr 
+    {
+        public Get(Expr Object, Token Name)
+        {
+            this.Object = Object;
+            this.Name = Name;
+        }
+
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitGetExpr(this);
+        }
+
+        public readonly Expr Object;
+        public readonly Token Name;
+    }
+
     public class Grouping : Expr 
     {
         public Grouping(Expr expression)
@@ -123,6 +144,25 @@ public abstract class Expr
         public readonly Expr left;
         public readonly Token @operator;
         public readonly Expr right;
+    }
+
+    public class Set : Expr 
+    {
+        public Set(Expr Object, Token Name, Expr Value)
+        {
+            this.Object = Object;
+            this.Name = Name;
+            this.Value = Value;
+        }
+
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitSetExpr(this);
+        }
+
+        public readonly Expr Object;
+        public readonly Token Name;
+        public readonly Expr Value;
     }
 
     public class Unary : Expr 
