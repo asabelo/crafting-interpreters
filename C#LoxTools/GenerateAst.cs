@@ -39,7 +39,7 @@ public class GenerateAst
             "Stmt",
             [
                 "Block      : List<Stmt> Statements",
-                "Class      : Token Name, List<Function> Methods",
+                "Class      : Token Name, List<Function> ClassMethods, List<Function> InstanceMethods",
                 "Expression : Expr InnerExpression",
                 "Function   : Token Name, List<Token> Params, List<Stmt> Body",
                 "Print      : Expr InnerExpression",

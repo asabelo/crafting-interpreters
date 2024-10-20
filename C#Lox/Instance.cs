@@ -1,8 +1,8 @@
 namespace Lox;
 
-public class Instance(Class klass)
+public class Instance(Class? klass)
 {
-    private readonly Class klass = klass;
+    protected readonly Class? metaklass = klass;
 
     private readonly Dictionary<string, object?> fields = [];
 
@@ -13,9 +13,14 @@ public class Instance(Class klass)
             return value;
         }
 
-        if (klass.FindMethod(name.Lexeme) is Function method)
+        if (metaklass?.FindMethod(name.Lexeme) is Function method)
         {
             return method.Bind(this);
+        }
+
+        if (metaklass is not null)
+        {
+            return metaklass.Get(name);
         }
 
         throw new RuntimeError(name, $"Undefined property '{name.Lexeme}'.");
@@ -26,5 +31,5 @@ public class Instance(Class klass)
         fields[name.Lexeme] = value;
     }
 
-    public override string ToString() => $"<instance of {klass.Name}>";
+    public override string ToString() => $"<instance of {metaklass?.Name ?? "Meta class"}>";
 }

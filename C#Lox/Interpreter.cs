@@ -298,16 +298,30 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
     
     public Unit VisitClassStmt(Stmt.Class stmt)
     {
+        var metaklassName = $"{stmt.Name.Lexeme} class";
+
+        environment.Define(metaklassName, null);
+
+        var classMethods = new Dictionary<string, Function>();
+        foreach (var method in stmt.ClassMethods)
+        {
+            classMethods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
+        }
+        
+        var metaklass = new Class(metaklassName, classMethods);
+
+        environment.Assign(stmt.Name with { Lexeme = metaklassName }, metaklass);
+
         environment.Define(stmt.Name.Lexeme, null);
 
-        var methods = new Dictionary<string, Function>();
-        foreach (var method in stmt.Methods)
+        var instanceMethods = new Dictionary<string, Function>();
+        foreach (var method in stmt.InstanceMethods)
         {
-            methods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
+            instanceMethods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
         }
 
-        var klass = new Class(stmt.Name.Lexeme, methods);
-
+        var klass = (Class)metaklass.Call(this, [stmt.Name.Lexeme, instanceMethods])!;
+        
         environment.Assign(stmt.Name, klass);
 
         return Unit.Value;

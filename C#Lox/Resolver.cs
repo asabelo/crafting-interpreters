@@ -118,16 +118,38 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         var enclosingClass = currentClass;
         currentClass = ClassType.CLASS;
 
+        var metaklassName = $"{stmt.Name} class";
+
+        Declare(stmt.Name with { Lexeme = metaklassName });
+        Define(stmt.Name with { Lexeme = metaklassName });
+
+        BeginScope();
+        scopes.Peek()["this"] = true;
+
+        foreach (var method in stmt.ClassMethods)
+        {
+            var declaration = method.Name.Lexeme == "init" ? CallableType.INITIALIZER : CallableType.METHOD;
+
+            if (declaration == CallableType.INITIALIZER && method.Params.Count > 0)
+            {
+                Lox.Error(method.Params[0], "Can't have parameters in class initializer.");
+            }
+
+            ResolveCallable(method.Params, method.Body, declaration);
+        }
+
+        EndScope();
+
         Declare(stmt.Name);
         Define(stmt.Name);
 
         BeginScope();
         scopes.Peek()["this"] = true;
 
-        foreach (var method in stmt.Methods)
+        foreach (var method in stmt.InstanceMethods)
         {
             var declaration = method.Name.Lexeme == "init" ? CallableType.INITIALIZER : CallableType.METHOD;
-
+            
             ResolveCallable(method.Params, method.Body, declaration);
         }
 

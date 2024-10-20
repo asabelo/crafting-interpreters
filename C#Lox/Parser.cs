@@ -67,16 +67,24 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
         await ConsumeAsync(LEFT_BRACE, "Expect '{' before class body.");
 
-        var methods = new List<Stmt.Function>();
+        var classMethods = new List<Stmt.Function>();
+        var instanceMethods = new List<Stmt.Function>();
 
         while (!Check(RIGHT_BRACE) && !IsAtEnd())
         {
-            methods.Add(await FunctionAsync("method"));
+            if (Match(CLASS))
+            {
+                classMethods.Add(await FunctionAsync("class method"));
+            }
+            else
+            {
+                instanceMethods.Add(await FunctionAsync("instance method"));
+            }
         }
 
         await ConsumeAsync(RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, classMethods, instanceMethods);
     }
 
     private async Task<Stmt> StatementAsync()
