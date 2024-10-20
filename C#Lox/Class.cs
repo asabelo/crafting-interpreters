@@ -1,15 +1,27 @@
 
 namespace Lox;
 
-public class Class(string name, Dictionary<string, Function> methods) : ICallable
+public class Class(string name, Class? superclass, Dictionary<string, Function> methods) : ICallable
 {
     public string Name { get; } = name;
+
+    private readonly Class? superclass = superclass;
 
     private readonly Dictionary<string, Function> methods = methods;
 
     public Function? FindMethod(string name)
     {
-        return methods.GetValueOrDefault(name);
+        if (methods.TryGetValue(name, out var method))
+        {
+            return method;
+        }
+
+        if (superclass is not null)
+        {
+            return superclass.FindMethod(name);
+        }
+        
+        return null;
     }
 
     public int Arity() => FindMethod("init")?.Arity() ?? 0;

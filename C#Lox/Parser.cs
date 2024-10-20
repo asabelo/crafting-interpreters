@@ -56,6 +56,14 @@ public class Parser
     {
         var name = await ConsumeAsync(IDENTIFIER, "Expect class name.");
 
+        Expr.Variable? superclass = null;
+        if (Match(LESS)) 
+        {
+            await ConsumeAsync(IDENTIFIER, "Expect superclass name.");
+
+            superclass = new Expr.Variable(Previous());
+        }
+
         await ConsumeAsync(LEFT_BRACE, "Expect '{' before class body.");
 
         var methods = new List<Stmt.Function>();
@@ -67,7 +75,7 @@ public class Parser
 
         await ConsumeAsync(RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, superclass, methods);
     }
 
     private async Task<Stmt> StatementAsync()
@@ -445,6 +453,13 @@ public class Parser
         else if (Match(NUMBER, STRING))
         {
             return new Expr.Literal(Previous().Literal);
+        }
+        else if (Match(SUPER))
+        {
+            var keyword = Previous();
+            await ConsumeAsync(DOT, "Expect '.' after 'super'.");
+            var method = await ConsumeAsync(IDENTIFIER, "Expect superclass method name.");
+            return new Expr.Super(keyword, method);
         }
         else if (Match(THIS))
         {

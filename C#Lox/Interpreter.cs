@@ -146,6 +146,20 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         return value;
     }
 
+    public object? VisitSuperExpr(Expr.Super expr)
+    {
+        var distance = locals[expr];
+        var superclass = (Class)environment.GetAt(distance, "super")!;
+        var obj = (Instance)environment.GetAt(distance - 1, "this")!;
+
+        if (superclass.FindMethod(expr.Method.Lexeme) is not Function method)
+        {
+            throw new RuntimeError(expr.Method, $"Undefined property '{expr.Method.Lexeme}'.");
+        }
+
+        return method.Bind(obj);
+    }
+
     public object? VisitThisExpr(Expr.This expr)
     {
         return LookUpVariable(expr.Keyword, expr);
@@ -272,7 +286,25 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
 
     public Unit VisitClassStmt(Stmt.Class stmt)
     {
+        Class? superclass = null;
+
+        if (stmt.Superclass is not null)
+        {
+            if (Evaluate(stmt.Superclass) is not Class sup)
+            {
+                throw new RuntimeError(stmt.Superclass.name, "Superclass must be a class.");
+            }
+            
+            superclass = sup;
+        }
+
         environment.Define(stmt.Name.Lexeme, null);
+
+        if (stmt.Superclass is not null)
+        {
+            environment = new Environment(environment);
+            environment.Define("super", superclass);
+        }
 
         var methods = new Dictionary<string, Function>();
         foreach (var method in stmt.Methods)
@@ -280,7 +312,12 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
             methods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
         }
 
-        var klass = new Class(stmt.Name.Lexeme, methods);
+        var klass = new Class(stmt.Name.Lexeme, superclass, methods);
+
+        if (superclass is not null)
+        {
+            environment = environment.Enclosing!;
+        }
 
         environment.Assign(stmt.Name, klass);
 

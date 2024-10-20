@@ -1,14 +1,9 @@
 namespace Lox;
 
-public class Environment
+public class Environment(Environment? enclosing = null)
 {
-    private readonly Environment? enclosing;
+    public Environment? Enclosing { get; } = enclosing;
     private readonly Dictionary<string, object?> values = [];
-
-    public Environment(Environment? enclosing = null)
-    {
-        this.enclosing = enclosing;
-    }
 
     public object? Get(Token name)
     {
@@ -17,9 +12,9 @@ public class Environment
             return value;
         }
 
-        if (enclosing is not null)
+        if (Enclosing is not null)
         {
-            return enclosing.Get(name);
+            return Enclosing.Get(name);
         }
 
         throw new RuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
@@ -33,9 +28,9 @@ public class Environment
             return;
         }
 
-        if (enclosing is not null)
+        if (Enclosing is not null)
         {
-            enclosing.Assign(name, value);
+            Enclosing.Assign(name, value);
             return;
         }
 
@@ -53,7 +48,7 @@ public class Environment
 
         for (int i = 0; i < distance; ++i) 
         {
-            environment = environment.enclosing!;
+            environment = environment.Enclosing!;
         }
 
         return environment;
