@@ -11,6 +11,7 @@ public abstract record Expr
         R VisitGroupingExpr(Grouping expr);
         R VisitLiteralExpr(Literal expr);
         R VisitSetExpr(Set expr);
+        R VisitSuperExpr(Super expr);
         R VisitThisExpr(This expr);
         R VisitUnaryExpr(Unary expr);
         R VisitAssignExpr(Assign expr);
@@ -72,6 +73,14 @@ public abstract record Expr
         public override R Accept<R>(IVisitor<R> visitor)
         {
             return visitor.VisitSetExpr(this);
+        }
+    }
+
+    public record Super(Token Keyword, Token Method) : Expr
+    {
+        public override R Accept<R>(IVisitor<R> visitor)
+        {
+            return visitor.VisitSuperExpr(this);
         }
     }
 

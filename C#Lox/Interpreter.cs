@@ -163,6 +163,20 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
         return value;
     }
 
+    public object? VisitSuperExpr(Expr.Super expr)
+    {
+        var distance = locals[expr];
+        var superclass = (Class)environment.GetSuper(distance);
+        var obj = (Instance)environment.GetThis(distance - 1);
+
+        if (superclass.FindMethod(expr.Method.Lexeme) is not Function method)
+        {
+            throw new RuntimeError(expr.Method, $"Undefined property '{expr.Method.Lexeme}'.");
+        }
+
+        return method.Bind(obj);
+    }
+
     public object? VisitThisExpr(Expr.This expr)
     {
         return LookUpVariable(expr.Keyword, expr);
@@ -298,6 +312,20 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
     
     public Unit VisitClassStmt(Stmt.Class stmt)
     {
+        // SUPERCLASS
+        Class? superclass = null;
+
+        if (stmt.Superclass is not null)
+        {
+            if (Evaluate(stmt.Superclass) is not Class sup)
+            {
+                throw new RuntimeError(stmt.Superclass.Name, "Superclass must be a class.");
+            }
+            
+            superclass = sup;
+        }
+
+        // METACLASS
         var metaklassName = $"{stmt.Name.Lexeme} class";
 
         environment.Define(metaklassName, null);
@@ -308,11 +336,18 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
             classMethods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
         }
         
-        var metaklass = new Class(metaklassName, classMethods);
+        var metaklass = new Class(metaklassName, null, classMethods);
 
         environment.Assign(stmt.Name with { Lexeme = metaklassName }, metaklass);
 
+        // CLASS
         environment.Define(stmt.Name.Lexeme, null);
+
+        if (stmt.Superclass is not null)
+        {
+            environment = new Environment(environment);
+            environment.Define("super", superclass);
+        }
 
         var instanceMethods = new Dictionary<string, Function>();
         foreach (var method in stmt.InstanceMethods)
@@ -320,8 +355,13 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor<Unit>
             instanceMethods[method.Name.Lexeme] = new Function(method, environment, isInitializer: method.Name.Lexeme == "init");
         }
 
-        var klass = (Class)metaklass.Call(this, [stmt.Name.Lexeme, instanceMethods])!;
+        var klass = (Class)metaklass.Call(this, [stmt.Name.Lexeme, superclass, instanceMethods])!;
         
+        if (superclass is not null)
+        {
+            environment = environment.Enclosing!;
+        }
+
         environment.Assign(stmt.Name, klass);
 
         return Unit.Value;

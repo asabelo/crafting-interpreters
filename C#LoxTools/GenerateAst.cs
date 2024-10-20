@@ -24,6 +24,7 @@ public class GenerateAst
                 "Grouping : Expr Expression",
                 "Literal  : object? Value",
                 "Set      : Expr Object, Token Name, Expr Value",
+                "Super    : Token Keyword, Token Method",
                 "This     : Token Keyword",
                 "Unary    : Token Operator, Expr Expression",
                 "Assign   : Token Name, Expr Value",
@@ -39,7 +40,7 @@ public class GenerateAst
             "Stmt",
             [
                 "Block      : List<Stmt> Statements",
-                "Class      : Token Name, List<Function> ClassMethods, List<Function> InstanceMethods",
+                "Class      : Token Name, Expr.Variable? Superclass, List<Function> ClassMethods, List<Function> InstanceMethods",
                 "Expression : Expr InnerExpression",
                 "Function   : Token Name, List<Token> Params, List<Stmt> Body",
                 "Print      : Expr InnerExpression",

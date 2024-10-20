@@ -2,8 +2,8 @@ namespace Lox;
 
 public class Environment(Environment? enclosing = null)
 {
-    private readonly Environment? enclosing = enclosing;
-    
+    public Environment? Enclosing { get; } = enclosing;
+
     private readonly Dictionary<string, object?> values = [];
 
     public object? Get(Token name)
@@ -18,9 +18,9 @@ public class Environment(Environment? enclosing = null)
             return value;
         }
 
-        if (enclosing is not null)
+        if (Enclosing is not null)
         {
-            return enclosing.Get(name);
+            return Enclosing.Get(name);
         }
 
         throw new RuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
@@ -34,9 +34,9 @@ public class Environment(Environment? enclosing = null)
             return;
         }
 
-        if (enclosing is not null)
+        if (Enclosing is not null)
         {
-            enclosing.Assign(name, value);
+            Enclosing.Assign(name, value);
             return;
         }
 
@@ -54,7 +54,7 @@ public class Environment(Environment? enclosing = null)
 
         for (int i = 0; i < distance; ++i) 
         {
-            environment = environment.enclosing!;
+            environment = environment.Enclosing!;
         }
 
         return environment;
@@ -62,7 +62,9 @@ public class Environment(Environment? enclosing = null)
 
     public object? GetAt(int distance, Token name) => Ancestor(distance).Get(name);
 
-    public object GetThis() => Ancestor(0).values["this"]!; // bulletproof
+    public object GetThis(int distance = 0) => Ancestor(distance).values["this"]!; // bulletproof
+
+    public object GetSuper(int distance) => Ancestor(distance).values["super"]!; // literally cannot fail
 
     public void AssignAt(int distance, Token name, object? value) => Ancestor(distance).Assign(name, value);
 }

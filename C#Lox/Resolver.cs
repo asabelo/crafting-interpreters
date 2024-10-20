@@ -19,7 +19,7 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
 
     private enum ClassType
     {
-        NONE, CLASS
+        NONE, CLASS, SUBCLASS
     }
 
 #region Private helpers
@@ -143,6 +143,20 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         Declare(stmt.Name);
         Define(stmt.Name);
 
+        if (stmt.Superclass is not null)
+        {
+            if (stmt.Name.Lexeme == stmt.Superclass.Name.Lexeme)
+            {
+                Lox.Error(stmt.Superclass.Name, "A class can't inherit from itself.");
+            }
+
+            currentClass = ClassType.SUBCLASS;
+            Resolve(stmt.Superclass);
+            
+            BeginScope();
+            scopes.Peek()["super"] = true;
+        }
+
         BeginScope();
         scopes.Peek()["this"] = true;
 
@@ -154,6 +168,11 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
         }
 
         EndScope();
+
+        if (stmt.Superclass is not null)
+        {
+            EndScope();
+        }
 
         currentClass = enclosingClass;
 
@@ -332,6 +351,22 @@ public class Resolver(Interpreter interpreter) : Stmt.IVisitor<Unit>, Expr.IVisi
     {
         Resolve(expr.Value);
         Resolve(expr.Object);
+
+        return Unit.Value;
+    }
+
+    public Unit VisitSuperExpr(Expr.Super expr)
+    {
+        if (currentClass == ClassType.NONE)
+        {
+            Lox.Error(expr.Keyword, "Can't use 'super' outside a class.");
+        }
+        else if (currentClass != ClassType.SUBCLASS)
+        {
+            Lox.Error(expr.Keyword, "Can't use 'super' in a class with no superclass.");
+        }
+
+        ResolveLocal(expr, expr.Keyword);
 
         return Unit.Value;
     }

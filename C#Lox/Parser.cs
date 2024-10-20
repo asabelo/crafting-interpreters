@@ -65,6 +65,14 @@ public class Parser(List<Token> tokens, bool fromPrompt)
     {
         var name = await ConsumeAsync(IDENTIFIER, "Expect class name.");
 
+        Expr.Variable? superclass = null;
+        if (Match(LESS)) 
+        {
+            await ConsumeAsync(IDENTIFIER, "Expect superclass name.");
+
+            superclass = new Expr.Variable(Previous());
+        }
+
         await ConsumeAsync(LEFT_BRACE, "Expect '{' before class body.");
 
         var classMethods = new List<Stmt.Function>();
@@ -84,7 +92,7 @@ public class Parser(List<Token> tokens, bool fromPrompt)
 
         await ConsumeAsync(RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Stmt.Class(name, classMethods, instanceMethods);
+        return new Stmt.Class(name, superclass, classMethods, instanceMethods);
     }
 
     private async Task<Stmt> StatementAsync()
@@ -459,6 +467,13 @@ public class Parser(List<Token> tokens, bool fromPrompt)
         else if (Match(FUN))
         {
             return await LambdaAsync();
+        }
+        else if (Match(SUPER))
+        {
+            var keyword = Previous();
+            await ConsumeAsync(DOT, "Expect '.' after 'super'.");
+            var method = await ConsumeAsync(IDENTIFIER, "Expect superclass method name.");
+            return new Expr.Super(keyword, method);
         }
         else if (Match(THIS))
         {

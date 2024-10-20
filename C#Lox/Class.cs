@@ -7,6 +7,8 @@ public class Class : Instance, ICallable
 
     public string Name { get; }
     
+    private readonly Class? superclass;
+
     private readonly Dictionary<string, Function> methods;
 
     private Class() : base(klass: null)
@@ -15,21 +17,33 @@ public class Class : Instance, ICallable
         methods = [];
     }
 
-    public Class(string name, Dictionary<string, Function> methods) : base(metametaklass)
+    public Class(string name, Class? superclass, Dictionary<string, Function> methods) : base(metametaklass)
     {
         Name = name;
+        this.superclass = superclass;
         this.methods = methods;
     }
 
-    public Class(string name, Dictionary<string, Function> methods, Class metaklass) : base(metaklass)
+    public Class(string name, Class? superclass, Dictionary<string, Function> methods, Class metaklass) : base(metaklass)
     {
         Name = name;
+        this.superclass = superclass;
         this.methods = methods;
     }
 
     public Function? FindMethod(string name)
     {
-        return methods.GetValueOrDefault(name);
+        if (methods.TryGetValue(name, out var method))
+        {
+            return method;
+        }
+
+        if (superclass is not null)
+        {
+            return superclass.FindMethod(name);
+        }
+        
+        return null;
     }
 
     public int Arity() => FindMethod("init")?.Arity() ?? 0;
@@ -41,16 +55,18 @@ public class Class : Instance, ICallable
         if (metaklass is null)
         {
             var name = (string)arguments[0]!;
-            var methods = (Dictionary<string, Function>)arguments[1]!;
+            var superclass = (Class?)arguments[1]!;
+            var methods = (Dictionary<string, Function>)arguments[2]!;
 
-            instance = new Class(name, methods, metametaklass);
+            instance = new Class(name, superclass, methods, metametaklass);
         }
         else if (metaklass == metametaklass)
         {
             var name = (string)arguments[0]!;
-            var methods = (Dictionary<string, Function>)arguments[1]!;
+            var superclass = (Class?)arguments[1]!;
+            var methods = (Dictionary<string, Function>)arguments[2]!;
             
-            instance = new Class(name, methods, this);
+            instance = new Class(name, superclass, methods, this);
         }
         else
         {

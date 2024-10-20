@@ -24,7 +24,7 @@ public abstract record Stmt
         }
     }
 
-    public record Class(Token Name, List<Function> ClassMethods, List<Function> InstanceMethods) : Stmt
+    public record Class(Token Name, Expr.Variable? Superclass, List<Function> ClassMethods, List<Function> InstanceMethods) : Stmt
     {
         public override R Accept<R>(IVisitor<R> visitor)
         {
