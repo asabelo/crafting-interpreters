@@ -1,7 +1,15 @@
 
-#include <iostream>
+#include <cstdint> // explicit-sized ints
 
-int main()
+#include "chunk.hpp"
+
+int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
+    auto c = lox::chunk{};
+
+    c.write(1);
+    c.write(2);
+    c.write(3);
+
+    return 0;
 }
