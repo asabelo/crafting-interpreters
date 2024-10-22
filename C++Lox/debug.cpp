@@ -36,6 +36,16 @@ int lox::disassemble_instruction(const chunk& chunk, int offset)
 {
     std::printf("%04d ", offset);
 
+    auto lines = chunk.lines().get();
+    if (offset > 0 && lines[offset] == lines[offset - 1])
+    {
+        printf("   | ");
+    }
+    else
+    {
+        printf("%4d ", lines[offset]);
+    }
+
     auto instruction = chunk.get()[offset];
 
     switch (instruction)
