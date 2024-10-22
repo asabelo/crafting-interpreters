@@ -132,12 +132,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chunk.cpp" />
+    <ClCompile Include="debug.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="array.hpp" />
     <ClInclude Include="chunk.hpp" />
     <ClInclude Include="common.hpp" />
+    <ClInclude Include="debug.hpp" />
     <ClInclude Include="memory.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

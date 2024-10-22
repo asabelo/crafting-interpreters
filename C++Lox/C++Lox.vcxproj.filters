@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="chunk.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="debug.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -30,6 +30,12 @@
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="common.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="array.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>

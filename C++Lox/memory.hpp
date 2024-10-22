@@ -26,9 +26,15 @@ namespace lox
         return result;
     }
 
-    template<typename T>
+    template <typename T>
     static T* grow_array(T* pointer, std::size_t old_count, std::size_t new_count)
     {
         return (T*)reallocate(pointer, sizeof(T) * old_count, sizeof(T) * new_count);
+    }
+
+    template <typename T>
+    static T* free_array(T* pointer, std::size_t old_count)
+    {
+        return (T*)reallocate(pointer, sizeof(T) * old_count, 0);
     }
 }
