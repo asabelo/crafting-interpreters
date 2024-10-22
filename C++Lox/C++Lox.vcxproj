@@ -134,10 +134,10 @@
   <ItemGroup>
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.hpp" />
+    <ClInclude Include="common.hpp" />
     <ClInclude Include="memory.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

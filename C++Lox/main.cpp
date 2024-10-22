@@ -1,6 +1,4 @@
 
-#include <cstdint> // explicit-sized ints
-
 #include "chunk.hpp"
 
 int main(int argc, char* argv[])

@@ -1,11 +1,7 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
-#include <memory>
-
-#include "memory.hpp"
+#include "common.hpp"
 
 namespace lox
 {
@@ -21,9 +17,11 @@ namespace lox
 
         std::size_t capacity = 0;
 
-        std::unique_ptr<uint8_t[]> code = nullptr;
+        uint8_t* code = nullptr;
 
     public:
+
+        void init();
 
         void write(uint8_t byte);
     };

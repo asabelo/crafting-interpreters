@@ -21,15 +21,15 @@
     <ClCompile Include="main.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="memory.cpp">
-      <Filter>Source files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="memory.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>
