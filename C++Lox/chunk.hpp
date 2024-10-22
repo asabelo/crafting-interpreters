@@ -3,14 +3,25 @@
 
 #include "array.hpp"
 #include "common.hpp"
+#include "value.hpp"
 
 namespace lox
 {
     // Bytecode instruction operation code
-    enum class op_code : uint8_t
+    enum op_code : uint8_t
     {
-        OP_RETURN
+        OP_RETURN,
+        OP_CONSTANT
     };
 
-    using chunk = array<op_code>;
+    class chunk : public array<uint8_t>
+    {
+        value_array m_constants = {};
+
+    public:
+
+        value_array& constants() { return m_constants; }
+
+        const value_array& constants() const { return m_constants; }
+    };
 }

@@ -134,6 +134,7 @@
   <ItemGroup>
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="value.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="array.hpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="common.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="memory.hpp" />
+    <ClInclude Include="value.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

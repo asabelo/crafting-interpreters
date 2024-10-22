@@ -7,7 +7,10 @@ int main(int argc, char* argv[])
 {
     auto c = lox::chunk{};
 
-    c.write(lox::op_code::OP_RETURN);
+    auto constant = c.constants().add(69);
+    c.add(lox::op_code::OP_CONSTANT);
+    c.add(constant);
+    c.add(lox::op_code::OP_RETURN);
 
     lox::disassemble_chunk(c, "test chunk");
 

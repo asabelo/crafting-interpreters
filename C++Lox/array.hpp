@@ -1,45 +1,55 @@
 
 #pragma once
 
+#include <concepts>
+
 #include "memory.hpp"
 
 namespace lox
 {
-    template <typename T>
+    template <typename TElement, std::unsigned_integral TIndex = std::size_t>
     class array
     {
     protected:
 
-        std::size_t count = 0;
+        TIndex m_count = 0;
 
-        std::size_t capacity = 0;
+        TIndex m_capacity = 0;
 
-        T* code = nullptr;
+        TElement* m_elements = nullptr;
 
     public:
 
-        std::size_t get_count() const { return count; }
-
-        std::size_t get_capacity() const { return capacity; }
-
-        T const* get_code() const { return code; }
+        array() = default;
 
         ~array()
         {
-            if (code) free_array(code, capacity);
+            if (m_elements) free_array(m_elements, m_capacity);
         }
 
-        void write(T element)
-        {
-            if (capacity < count + 1)
-            {
-                auto old_capacity = capacity;
-                auto new_capacity = grow_capacity(capacity);
+        array(array& other) = delete;
 
-                code = grow_array(code, old_capacity, new_capacity);
+        array& operator=(array other) = delete;
+
+        TIndex count() const { return m_count; }
+
+        TIndex capacity() const { return m_capacity; }
+
+        TElement const* get() const { return m_elements; }
+
+        TIndex add(TElement element)
+        {
+            if (m_capacity < m_count + 1)
+            {
+                auto old_capacity = m_capacity;
+                auto new_capacity = grow_capacity(m_capacity);
+
+                m_elements = grow_array(m_elements, old_capacity, new_capacity);
             }
 
-            code[count++] = element;
+            m_elements[m_count++] = element;
+
+            return m_count - 1;
         }
     };
 }
