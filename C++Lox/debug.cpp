@@ -6,7 +6,7 @@ void lox::disassemble_chunk(const chunk& chunk, const char* name)
 {
     std::printf("== %s ==\n", name);
 
-    for (int offset = 0; offset < chunk.count();)
+    for (chunk::idx_t offset = 0; offset < chunk.count();)
     {
         offset = disassemble_instruction(chunk, offset);
     }
@@ -36,14 +36,13 @@ int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
 {
     std::printf("%04d ", static_cast<int>(offset));
 
-    auto& lines = chunk.lines();
-    if (offset > 0 && lines.get(offset) == lines.get(offset - 1))
+    if (offset > 0 && chunk.get_line(offset) == chunk.get_line(offset - 1))
     {
         printf("   | ");
     }
     else
     {
-        printf("%4d ", lines.get(offset));
+        printf("%4d ", chunk.get_line(offset));
     }
 
     auto instruction = chunk.get(offset);
