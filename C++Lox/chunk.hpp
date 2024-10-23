@@ -23,10 +23,10 @@ namespace lox
         value_array m_constants = {};
 
     public:
-        line_array& lines() { return m_lines; }
+              line_array& lines()       { return m_lines; }
         const line_array& lines() const { return m_lines; }
 
-        value_array& constants() { return m_constants; }
+              value_array& constants()       { return m_constants; }
         const value_array& constants() const { return m_constants; }
 
         uint8_t add(uint8_t element, int line)
