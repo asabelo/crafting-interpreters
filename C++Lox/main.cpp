@@ -13,8 +13,6 @@ int main(int argc, char* argv[])
     c.add(c.constants().add(1.2), 123);
     c.add(lox::op_code::OP_RETURN, 123);
 
-    lox::disassemble_chunk(c, "test chunk");
-
     vm.interpret(std::move(c));
 
     return 0;

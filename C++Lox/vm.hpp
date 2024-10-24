@@ -36,14 +36,28 @@ namespace lox
 
             while (true)
             {
+#ifdef _DEBUG
+                std::printf("          ");
+                for (lox::stack<value>::idx_t i = 0; i < stack.count(); ++i)
+                {
+                    std::printf("[ ");
+                    print_value(stack.get(i));
+                    std::printf(" ]");
+                }
+                std::printf("\n");
+
+                disassemble_instruction(chunk, ip);
+#endif // DEBUG
+
                 switch (read_byte())
                 {
                 case op_code::OP_CONSTANT:
-                    print_value(read_constant());
-                    std::printf("\n");
+                    stack.push(read_constant());
                     break;
 
                 case op_code::OP_RETURN:
+                    print_value(stack.pop());
+                    std::printf("\n");
                     return interpret_result::INTERPRET_OK;
                 }
             }
