@@ -3,6 +3,7 @@
 
 #include "chunk.hpp"
 #include "common.hpp"
+#include "stack.hpp"
 
 namespace lox
 {
@@ -18,6 +19,8 @@ namespace lox
         chunk chunk = {};
 
         chunk::idx_t ip = {};
+
+        stack<value> stack = {};
 
         interpret_result run()
         {

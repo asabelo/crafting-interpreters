@@ -47,5 +47,8 @@
     <ClInclude Include="vm.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="stack.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

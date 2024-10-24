@@ -142,6 +142,7 @@
     <ClInclude Include="common.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="memory.hpp" />
+    <ClInclude Include="stack.hpp" />
     <ClInclude Include="value.hpp" />
     <ClInclude Include="vm.hpp" />
   </ItemGroup>
