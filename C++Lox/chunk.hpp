@@ -10,8 +10,13 @@ namespace lox
     // Bytecode instruction operation code
     enum op_code : uint8_t
     {
-        OP_RETURN,
-        OP_CONSTANT
+        OP_CONSTANT,
+        OP_ADD,
+        OP_SUBTRACT,
+        OP_MULTIPLY,
+        OP_DIVIDE,
+        OP_NEGATE,
+        OP_RETURN
     };
 
     class chunk : public array<uint8_t>

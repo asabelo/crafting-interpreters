@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "chunk.hpp"
 #include "common.hpp"
 #include "stack.hpp"
@@ -34,6 +36,13 @@ namespace lox
                 return chunk.constants().get(read_byte());
             };
 
+            const auto binary_op = [this](std::function<value(value, value)> op)
+            {
+                const auto b = stack.pop();
+                const auto a = stack.pop();
+                return stack.push(op(a, b));
+            };
+
             while (true)
             {
 #ifdef _DEBUG
@@ -53,6 +62,26 @@ namespace lox
                 {
                 case op_code::OP_CONSTANT:
                     stack.push(read_constant());
+                    break;
+
+                case op_code::OP_ADD:
+                    binary_op(std::plus{});
+                    break;
+
+                case op_code::OP_SUBTRACT:
+                    binary_op(std::minus{});
+                    break;
+
+                case op_code::OP_MULTIPLY:
+                    binary_op(std::multiplies{});
+                    break;
+
+                case op_code::OP_DIVIDE:
+                    binary_op(std::divides{});
+                    break;
+
+                case op_code::OP_NEGATE:
+                    stack.push(-stack.pop());
                     break;
 
                 case op_code::OP_RETURN:
