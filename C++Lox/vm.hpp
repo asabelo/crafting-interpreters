@@ -5,6 +5,8 @@
 
 #include "chunk.hpp"
 #include "common.hpp"
+#include "compiler.hpp"
+#include "debug.hpp"
 #include "stack.hpp"
 
 namespace lox
@@ -94,11 +96,12 @@ namespace lox
 
     public:
 
-        interpret_result interpret(lox::chunk&& chunk)
+        interpret_result interpret(const char* source)
         {
-            this->chunk = std::move(chunk);
+            auto s = scanner{ source };
+            compile(s);
 
-            return run();
+            return interpret_result::INTERPRET_OK;
         }
     };
 }

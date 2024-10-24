@@ -50,5 +50,11 @@
     <ClInclude Include="stack.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="compiler.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="scanner.hpp">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

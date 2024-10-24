@@ -140,8 +140,10 @@
     <ClInclude Include="array.hpp" />
     <ClInclude Include="chunk.hpp" />
     <ClInclude Include="common.hpp" />
+    <ClInclude Include="compiler.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="memory.hpp" />
+    <ClInclude Include="scanner.hpp" />
     <ClInclude Include="stack.hpp" />
     <ClInclude Include="value.hpp" />
     <ClInclude Include="vm.hpp" />
