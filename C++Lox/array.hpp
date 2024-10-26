@@ -36,21 +36,6 @@ namespace lox
 
         array& operator=(array& other) = delete;
 
-        array(array&& other) = delete;
-
-        array& operator=(array&& other) noexcept
-        {
-            m_count = other.m_count;
-            m_capacity = other.m_capacity;
-            m_elements = other.m_elements;
-
-            other.m_count = 0;
-            other.m_capacity = 0;
-            other.m_elements = nullptr;
-
-            return *this;
-        }
-
         idx_t count() const { return m_count; }
 
         idx_t capacity() const { return m_capacity; }

@@ -24,6 +24,9 @@
     <ClCompile Include="value.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
+    <ClCompile Include="scanner.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.hpp">
