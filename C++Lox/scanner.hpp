@@ -37,7 +37,7 @@ namespace lox
 
     class scanner
     {
-        const std::string& m_source;
+        const std::string_view m_source;
 
         std::string::size_type m_start;
 
@@ -77,7 +77,7 @@ namespace lox
 
     public:
 
-        scanner(const std::string& source);
+        scanner(const std::string_view source);
 
         token scan_token();
     };

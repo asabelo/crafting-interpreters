@@ -100,7 +100,7 @@ namespace lox
 
     public:
 
-        interpret_result interpret(const std::string& source)
+        interpret_result interpret(const std::string_view source)
         {
             auto scanner = lox::scanner{ source };
 

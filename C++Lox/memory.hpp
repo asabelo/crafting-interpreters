@@ -21,7 +21,7 @@ namespace lox
 
         auto result = std::realloc(pointer, new_size);
 
-        if (!result) std::exit(1);
+        if (!result) throw std::bad_alloc{};
 
         return result;
     }

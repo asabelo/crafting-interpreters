@@ -11,7 +11,7 @@ lox::token lox::scanner::make_token(const lox::token_type type)
     return
     {
         type,
-        std::string_view{ m_source }.substr(m_start, static_cast<int>(m_current - m_start)),
+        m_source.substr(m_start, m_current - m_start),
         m_line
     };
 }
@@ -138,7 +138,7 @@ bool lox::scanner::is_alpha(char c)
 lox::token_type lox::scanner::check_keyword(const std::size_t start, const std::string_view rest, const token_type type)
 {
     if (m_current - m_start == start + rest.length()
-        && rest.compare(std::string_view{ m_source }.substr(m_start + start, rest.length())) == 0)
+        && rest.compare(m_source.substr(m_start + start, rest.length())) == 0)
     {
         return type;
     }
@@ -194,7 +194,7 @@ lox::token lox::scanner::identifier()
     return make_token(identifier_type());
 }
 
-lox::scanner::scanner(const std::string& source) : m_source{ source }
+lox::scanner::scanner(const std::string_view source) : m_source{ source }
 {
     m_start = m_current = 0;
     m_line = 1;
