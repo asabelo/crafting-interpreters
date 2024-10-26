@@ -3,7 +3,7 @@
 
 bool lox::scanner::is_at_end()
 {
-    return m_source[m_current] == '\0';
+    return m_current == m_source.length();
 }
 
 lox::token lox::scanner::make_token(const lox::token_type type)
@@ -46,6 +46,8 @@ bool lox::scanner::match(char expected)
 
 char lox::scanner::peek()
 {
+    if (is_at_end()) return '\0';
+
     return m_source[m_current];
 }
 
