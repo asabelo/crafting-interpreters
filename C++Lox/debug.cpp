@@ -2,9 +2,9 @@
 #include "debug.hpp"
 #include "value.hpp"
 
-void lox::disassemble_chunk(const chunk& chunk, const char* name)
+void lox::disassemble_chunk(const chunk& chunk, const std::string& name)
 {
-    std::printf("== %s ==\n", name);
+    std::cout << std::format("== {} ==\n", name);
 
     for (int offset = 0; offset < chunk.count();)
     {
@@ -12,38 +12,39 @@ void lox::disassemble_chunk(const chunk& chunk, const char* name)
     }
 }
 
-static lox::chunk::idx_t constant_instruction(const char* name, const lox::chunk& chunk, lox::chunk::idx_t offset)
+static lox::chunk::idx_t constant_instruction(const std::string& name, const lox::chunk& chunk, lox::chunk::idx_t offset)
 {
     auto constant = chunk.get(offset + 1);
     
-    std::printf("%-16s %4d '", name, constant);
+    std::cout << std::format("{:16} {:4} '", name, constant);
     
     lox::print_value(chunk.constants().get(constant));
     
-    std::printf("'\n");
+    std::cout << "'\n";
 
     return offset + 2;
 }
 
-static lox::chunk::idx_t simple_instruction(const char* name, lox::chunk::idx_t offset)
+static lox::chunk::idx_t simple_instruction(const std::string& name, lox::chunk::idx_t offset)
 {
-    std::printf("%s\n", name);
+    std::cout << name << '\n';
 
     return offset + 1;
 }
 
 int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
 {
-    std::printf("%04d ", static_cast<int>(offset));
+    std::cout << std::format("{:0>4}", static_cast<int>(offset));
 
     auto& lines = chunk.lines();
+
     if (offset > 0 && lines.get(offset) == lines.get(offset - 1))
     {
-        printf("   | ");
+        std::cout << "   | ";
     }
     else
     {
-        printf("%4d ", lines.get(offset));
+        std::cout << std::format("{:4}", lines.get(offset));
     }
 
     auto instruction = chunk.get(offset);

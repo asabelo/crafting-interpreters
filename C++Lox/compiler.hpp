@@ -9,20 +9,22 @@ namespace lox
     void compile(lox::scanner& scanner)
     {
         int line = -1;
-        for (;;) 
-        {
-            token token = scanner.scan_token();
 
-            if (token.line != line) 
+        while (true)
+        {
+            const auto token = scanner.scan_token();
+
+            if (token.line != line)
             {
-                printf("%4d ", token.line);
+                std::cout << std::format("{:4} ", token.line);
                 line = token.line;
             }
             else 
             {
-                printf("   | ");
+                std::cout << "   | ";
             }
-            printf("%2d '%.*s'\n", token.type, token.length, token.start);
+
+            std::cout << std::format("{:2} '{}'", static_cast<int>(token.type), token.text) << '\n';
 
             if (token.type == token_type::END_OF_FILE) break;
         }

@@ -5,7 +5,7 @@
 
 namespace lox
 {
-    enum token_type
+    enum token_type : int
     {
         // Single-character tokens.
         LEFT_PAREN, RIGHT_PAREN,
@@ -27,28 +27,29 @@ namespace lox
 
         ERROR, END_OF_FILE
     };
-
+     
     struct token
     {
-        token_type type;
-        const char* start;
-        int length;
-        int line;
+        const token_type       type;
+        const std::string_view text;
+        const int              line;
     };
 
     class scanner
     {
-        const char* m_start;
+        const std::string& m_source;
 
-        const char* m_current;
+        std::string::size_type m_start;
+
+        std::string::size_type m_current;
 
         int m_line;
 
         bool is_at_end();
 
-        token make_token(token_type type);
+        token make_token(const token_type type);
 
-        token error_token(const char* message);
+        token error_token(const std::string_view message);
 
         char advance();
 
@@ -68,7 +69,7 @@ namespace lox
 
         bool is_alpha(char c);
 
-        token_type check_keyword(int start, int length, const char* rest, token_type type);
+        token_type check_keyword(const std::size_t start, const std::string_view rest, const token_type type);
 
         token_type identifier_type();
 
@@ -76,7 +77,7 @@ namespace lox
 
     public:
 
-        scanner(const char* source);
+        scanner(const std::string& source);
 
         token scan_token();
     };

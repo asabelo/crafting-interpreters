@@ -48,14 +48,18 @@ namespace lox
             while (true)
             {
 #ifdef _DEBUG
-                std::printf("          ");
+                std::cout << "          ";
+
                 for (lox::stack<value>::idx_t i = 0; i < stack.count(); ++i)
                 {
-                    std::printf("[ ");
+                    std::cout << "[ ";
+
                     print_value(stack.get(i));
-                    std::printf(" ]");
+
+                    std::cout << " ]";
                 }
-                std::printf("\n");
+
+                std::cout << '\n';
 
                 disassemble_instruction(chunk, ip);
 #endif // DEBUG
@@ -88,7 +92,7 @@ namespace lox
 
                 case op_code::OP_RETURN:
                     print_value(stack.pop());
-                    std::printf("\n");
+                    std::cout << '\n';
                     return interpret_result::INTERPRET_OK;
                 }
             }
@@ -96,10 +100,11 @@ namespace lox
 
     public:
 
-        interpret_result interpret(const char* source)
+        interpret_result interpret(const std::string& source)
         {
-            auto s = scanner{ source };
-            compile(s);
+            auto scanner = lox::scanner{ source };
+
+            compile(scanner);
 
             return interpret_result::INTERPRET_OK;
         }
