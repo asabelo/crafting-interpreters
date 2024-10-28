@@ -44,7 +44,7 @@ int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
     }
     else
     {
-        std::cout << std::format("{:4}", lines.get(offset));
+        std::cout << std::format("{:4} ", lines.get(offset));
     }
 
     auto instruction = chunk.get(offset);

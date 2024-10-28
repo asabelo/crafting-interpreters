@@ -60,8 +60,8 @@ static int run_file(lox::vm& vm, const std::string& path)
 
     auto result = vm.interpret(source);
 
-    if (result == lox::interpret_result::INTERPRET_COMPILE_ERROR) return 65;
-    if (result == lox::interpret_result::INTERPRET_RUNTIME_ERROR) return 70;
+    if (result == lox::interpret_result::COMPILE_ERROR) return 65;
+    if (result == lox::interpret_result::RUNTIME_ERROR) return 70;
 
     return 0;
 }

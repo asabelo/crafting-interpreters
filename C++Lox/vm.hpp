@@ -7,20 +7,20 @@
 
 namespace lox
 {
-    enum class interpret_result
+    enum class interpret_result : int
     {
-        INTERPRET_OK,
-        INTERPRET_COMPILE_ERROR,
-        INTERPRET_RUNTIME_ERROR
+        OK,
+        COMPILE_ERROR,
+        RUNTIME_ERROR
     };
 
     class vm
     {
-        chunk& chunk;
+        chunk& m_chunk;
 
-        chunk::idx_t ip;
+        chunk::idx_t m_ip;
 
-        stack<value> stack;
+        stack<value> m_stack;
 
         interpret_result run();
 
