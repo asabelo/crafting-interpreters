@@ -1,32 +1,112 @@
 
 #pragma once
 
+#include <unordered_map>
+
+#include "chunk.hpp"
 #include "common.hpp"
+#include "parser.hpp"
 #include "scanner.hpp"
 
 namespace lox
 {
-    void compile(lox::scanner& scanner)
+    enum class precedence : int
     {
-        int line = -1;
+        NONE,
+        ASSIGNMENT,  // =
+        OR,          // or
+        AND,         // and
+        EQUALITY,    // == !=
+        COMPARISON,  // < > <= >=
+        TERM,        // + -
+        FACTOR,      // * /
+        UNARY,       // ! -
+        CALL,        // . ()
+        PRIMARY
+    };
 
-        while (true)
+    struct parse_rule
+    {
+        std::optional<std::function<void()>> prefix = std::nullopt;
+        std::optional<std::function<void()>> infix  = std::nullopt;
+        precedence precedence                       = precedence::NONE;
+    };
+
+    class compiler
+    {
+        chunk& m_chunk;
+        parser m_parser;
+
+        chunk& current_chunk();
+
+        void emit(uint8_t byte);
+        void emit(uint8_t first_byte, uint8_t second_byte);
+        void emit(value constant);
+
+        uint8_t make_constant(value value);
+
+        void expression();
+
+        void number();
+
+        void grouping();
+
+        void unary();
+
+        void binary();
+
+        const parse_rule& get_rule(token_type type) const;
+
+        void parse_precedence(precedence precedence);
+
+        const std::unordered_map<token_type, parse_rule> rules // sorry
         {
-            const auto token = scanner.scan_token();
+            { token_type::LEFT_PAREN,    { std::bind(&compiler::grouping, this), std::nullopt, precedence::NONE } },
+            { token_type::RIGHT_PAREN,   { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::LEFT_BRACE,    { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::RIGHT_BRACE,   { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::COMMA,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::DOT,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::MINUS,         { std::bind(&compiler::unary, this), std::bind(&compiler::binary, this), precedence::TERM} },
+            { token_type::PLUS,          { std::nullopt, std::bind(&compiler::binary, this), precedence::TERM} },
+            { token_type::SEMICOLON,     { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::SLASH,         { std::nullopt, std::bind(&compiler::binary, this), precedence::FACTOR} },
+            { token_type::STAR,          { std::nullopt, std::bind(&compiler::binary, this), precedence::FACTOR} },
+            { token_type::BANG,          { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::BANG_EQUAL,    { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::EQUAL,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::EQUAL_EQUAL,   { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::GREATER,       { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::GREATER_EQUAL, { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::LESS,          { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::LESS_EQUAL,    { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::IDENTIFIER,    { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::STRING,        { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::NUMBER,        { std::bind(&compiler::number, this), std::nullopt, precedence::NONE} },
+            { token_type::AND,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::CLASS,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::ELSE,          { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::FALSE,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::FOR,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::FUN,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::IF,            { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::NIL,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::OR,            { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::PRINT,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::RETURN,        { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::SUPER,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::THIS,          { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::TRUE,          { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::VAR,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::WHILE,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::ERROR,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::END_OF_FILE,   { std::nullopt, std::nullopt, precedence::NONE } },
+        };
 
-            if (token.line != line)
-            {
-                std::cout << std::format("{:4} ", token.line);
-                line = token.line;
-            }
-            else 
-            {
-                std::cout << "   | ";
-            }
+    public:
 
-            std::cout << std::format("{:2} '{}'", static_cast<int>(token.type), token.text) << '\n';
+        compiler(const std::string_view source, chunk& chunk);
 
-            if (token.type == token_type::END_OF_FILE) break;
-        }
-    }
+        bool compile();
+    };
 }

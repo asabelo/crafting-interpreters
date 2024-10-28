@@ -16,15 +16,17 @@ namespace lox
 
     class vm
     {
-        chunk chunk = {};
+        chunk& chunk;
 
-        chunk::idx_t ip = {};
+        chunk::idx_t ip;
 
-        stack<value> stack = {};
+        stack<value> stack;
 
         interpret_result run();
 
     public:
+
+        vm(lox::chunk& chunk);
 
         interpret_result interpret(const std::string_view source);
     };

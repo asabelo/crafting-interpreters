@@ -132,8 +132,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="compiler.cpp" />
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="parser.cpp" />
     <ClCompile Include="scanner.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="vm.cpp" />
@@ -145,6 +147,7 @@
     <ClInclude Include="compiler.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="memory.hpp" />
+    <ClInclude Include="parser.hpp" />
     <ClInclude Include="scanner.hpp" />
     <ClInclude Include="stack.hpp" />
     <ClInclude Include="value.hpp" />

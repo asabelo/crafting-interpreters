@@ -1,10 +1,15 @@
 
 #include "vm.hpp"
 
-#include <functional>
-
 #include "compiler.hpp"
 #include "debug.hpp"
+
+lox::vm::vm(lox::chunk& chunk) 
+    : chunk{ chunk }
+    , ip{ 0 }
+    , stack{}
+{
+}
 
 lox::interpret_result lox::vm::run()
 {
@@ -24,6 +29,10 @@ lox::interpret_result lox::vm::run()
         const auto a = stack.pop();
         return stack.push(op(a, b));
     };
+
+#ifdef _DEBUG
+    std::cout << "\n== trace ==";
+#endif // _DEBUG
 
     while (true)
     {
@@ -80,9 +89,14 @@ lox::interpret_result lox::vm::run()
 
 lox::interpret_result lox::vm::interpret(const std::string_view source)
 {
-    auto scanner = lox::scanner{ source };
+    lox::compiler compiler{ source, chunk };
 
-    compile(scanner);
+    if (!compiler.compile())
+    {
+        return interpret_result::INTERPRET_COMPILE_ERROR;
+    }
 
-    return interpret_result::INTERPRET_OK;
+    auto result = run();
+
+    return result;
 }

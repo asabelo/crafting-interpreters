@@ -5,7 +5,7 @@
 
 namespace lox
 {
-    enum token_type : int
+    enum class token_type : int
     {
         // Single-character tokens.
         LEFT_PAREN, RIGHT_PAREN,
@@ -30,9 +30,9 @@ namespace lox
      
     struct token
     {
-        const token_type       type;
-        const std::string_view text;
-        const int              line;
+        token_type       type;
+        std::string_view text;
+        int              line;
     };
 
     class scanner

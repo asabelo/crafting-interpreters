@@ -13,7 +13,8 @@ int run_file(lox::vm&, const std::string&);
 
 int main(int argc, char* argv[])
 {
-    auto vm = lox::vm{};
+    lox::chunk chunk{};
+    lox::vm vm{ chunk };
 
     if (argc == 1)
     {
