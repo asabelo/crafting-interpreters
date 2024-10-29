@@ -57,5 +57,10 @@ namespace lox
 
             return m_count - 1;
         }
+
+        void reset()
+        {
+            m_count = 0;
+        }
     };
 }
