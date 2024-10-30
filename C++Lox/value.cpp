@@ -43,6 +43,23 @@ bool lox::value::is_number() const
     return this->type == value_type::NUMBER;
 }
 
+bool lox::value::is_falsey() const
+{
+    return is_nil() || (is_boolean() && !as.boolean);
+}
+
+bool lox::value::equals(const value other) const
+{
+    if (this->type != other.type) return false;
+
+    switch (type)
+    {
+    case value_type::BOOL:   return this->as.boolean == other.as.boolean;
+    case value_type::NIL:    return true;
+    case value_type::NUMBER: return this->as.number == other.as.number;
+    }
+}
+
 void lox::print_value(value value)
 {
     switch (value.type)

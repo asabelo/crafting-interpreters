@@ -60,6 +60,7 @@ void lox::compiler::unary()
 
     switch (operator_type)
     {
+    case token_type::BANG:  emit(op_code::OP_NOT);    break;
     case token_type::MINUS: emit(op_code::OP_NEGATE); break;
     default: return; // Unreachable.
     }
@@ -75,10 +76,16 @@ void lox::compiler::binary()
 
     switch (operator_type)
     {
-    case token_type::PLUS:  emit(op_code::OP_ADD);      break;
-    case token_type::MINUS: emit(op_code::OP_SUBTRACT); break;
-    case token_type::STAR:  emit(op_code::OP_MULTIPLY); break;
-    case token_type::SLASH: emit(op_code::OP_DIVIDE);   break;
+    case token_type::BANG_EQUAL:    emit(op_code::OP_EQUAL, op_code::OP_NOT);   break;
+    case token_type::EQUAL_EQUAL:   emit(op_code::OP_EQUAL);                    break;
+    case token_type::GREATER:       emit(op_code::OP_GREATER);                  break;
+    case token_type::GREATER_EQUAL: emit(op_code::OP_LESS, op_code::OP_NOT);    break;
+    case token_type::LESS:          emit(op_code::OP_LESS);                     break;
+    case token_type::LESS_EQUAL:    emit(op_code::OP_GREATER, op_code::OP_NOT); break;
+    case token_type::PLUS:          emit(op_code::OP_ADD);                      break;
+    case token_type::MINUS:         emit(op_code::OP_SUBTRACT);                 break;
+    case token_type::STAR:          emit(op_code::OP_MULTIPLY);                 break;
+    case token_type::SLASH:         emit(op_code::OP_DIVIDE);                   break;
     default: return; // Unreachable.
     }
 }

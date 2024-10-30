@@ -23,7 +23,7 @@ lox::interpret_result lox::vm::run()
         return m_chunk.constants().get(read_byte());
     };
 
-    const auto binary_op = [this](std::function<double(double, double)> op)
+    const auto binary_op = [this](auto operation)
     {
         if (!m_stack.peek(0).is_number() || !m_stack.peek(1).is_number())
         {
@@ -32,7 +32,7 @@ lox::interpret_result lox::vm::run()
         }
         const auto b = m_stack.pop().as.number;
         const auto a = m_stack.pop().as.number;
-        return m_stack.push(value::from(op(a, b)));
+        m_stack.push(value::from(operation(a, b)));
     };
 
 #ifdef _DEBUG
@@ -78,6 +78,20 @@ lox::interpret_result lox::vm::run()
                 m_stack.push(value::from(false));
                 break;
 
+            case op_code::OP_EQUAL:
+                const auto a = m_stack.pop();
+                const auto b = m_stack.pop();
+                m_stack.push(value::from(a.equals(b)));
+                break;
+
+            case op_code::OP_GREATER:
+                binary_op(std::greater{});
+                break;
+
+            case op_code::OP_LESS:
+                binary_op(std::less{});
+                break;
+
             case op_code::OP_ADD:
                 binary_op(std::plus{});
                 break;
@@ -92,6 +106,10 @@ lox::interpret_result lox::vm::run()
 
             case op_code::OP_DIVIDE:
                 binary_op(std::divides{});
+                break;
+
+            case op_code::OP_NOT:
+                m_stack.push(value::from(m_stack.pop().is_falsey()));
                 break;
 
             case op_code::OP_NEGATE:

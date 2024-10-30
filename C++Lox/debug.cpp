@@ -63,6 +63,15 @@ int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
     case op_code::OP_FALSE:
         return simple_instruction("OP_FALSE", offset);
 
+    case OP_EQUAL:
+        return simple_instruction("OP_EQUAL", offset);
+    
+    case OP_GREATER:
+        return simple_instruction("OP_GREATER", offset);
+
+    case OP_LESS:
+        return simple_instruction("OP_LESS", offset);
+
     case op_code::OP_ADD:
         return simple_instruction("OP_ADD", offset);
 
@@ -74,6 +83,9 @@ int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
 
     case op_code::OP_DIVIDE:
         return simple_instruction("OP_DIVIDE", offset);
+
+    case op_code::OP_NOT:
+        return simple_instruction("OP_NOT", offset);
 
     case op_code::OP_NEGATE:
         return simple_instruction("OP_NEGATE", offset);
