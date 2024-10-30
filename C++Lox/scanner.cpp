@@ -53,7 +53,7 @@ char lox::scanner::peek()
 
 char lox::scanner::peek_next()
 {
-    if (is_at_end()) return '\0';
+    if (is_at_end() || m_current + 1 == m_source.length()) return '\0';
 
     return m_source[m_current + 1];
 }

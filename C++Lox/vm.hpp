@@ -24,6 +24,8 @@ namespace lox
 
         interpret_result run();
 
+        void runtime_error(const std::string_view format, const auto&&... params);
+
     public:
 
         vm(lox::chunk& chunk);

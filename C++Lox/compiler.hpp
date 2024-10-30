@@ -55,6 +55,8 @@ namespace lox
 
         void binary();
 
+        void literal();
+
         const parse_rule& get_rule(token_type type) const;
 
         void parse_precedence(precedence precedence);
@@ -86,17 +88,17 @@ namespace lox
             { token_type::AND,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::CLASS,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::ELSE,          { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::FALSE,         { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::FALSE,         { std::bind(&compiler::literal, this), std::nullopt, precedence::NONE}},
             { token_type::FOR,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::FUN,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::IF,            { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::NIL,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::NIL,           { std::bind(&compiler::literal, this), std::nullopt, precedence::NONE } },
             { token_type::OR,            { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::PRINT,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::RETURN,        { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::SUPER,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::THIS,          { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::TRUE,          { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::TRUE,          { std::bind(&compiler::literal, this), std::nullopt, precedence::NONE } },
             { token_type::VAR,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::WHILE,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::ERROR,         { std::nullopt, std::nullopt, precedence::NONE } },

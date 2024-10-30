@@ -11,6 +11,9 @@ namespace lox
     enum op_code : uint8_t
     {
         OP_CONSTANT,
+        OP_NIL,
+        OP_TRUE,
+        OP_FALSE,
         OP_ADD,
         OP_SUBTRACT,
         OP_MULTIPLY,

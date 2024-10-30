@@ -40,9 +40,9 @@ void lox::compiler::expression()
 
 void lox::compiler::number()
 {
-    auto value = std::stod(std::string{ m_parser.previous().text });
+    auto number = std::stod(std::string{ m_parser.previous().text });
 
-    emit(value);
+    emit(value::from(number));
 }
 
 void lox::compiler::grouping()
@@ -80,6 +80,17 @@ void lox::compiler::binary()
     case token_type::STAR:  emit(op_code::OP_MULTIPLY); break;
     case token_type::SLASH: emit(op_code::OP_DIVIDE);   break;
     default: return; // Unreachable.
+    }
+}
+
+void lox::compiler::literal()
+{
+    switch (m_parser.previous().type)
+    {
+    case token_type::FALSE: emit(op_code::OP_FALSE); break;
+    case token_type::NIL:   emit(op_code::OP_NIL);   break;
+    case token_type::TRUE:  emit(op_code::OP_TRUE);  break;
+    default: return; // Unreachable
     }
 }
 
