@@ -24,11 +24,17 @@ namespace lox
 
         interpret_result run();
 
+        void concatenate();
+
         void runtime_error(const std::string_view format, const auto&&... params);
 
     public:
 
+        static obj* objects;
+
         vm(lox::chunk& chunk);
+
+        ~vm();
 
         interpret_result interpret(const std::string_view source);
     };

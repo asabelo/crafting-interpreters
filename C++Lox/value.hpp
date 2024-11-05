@@ -3,6 +3,7 @@
 
 #include "array.hpp"
 #include "common.hpp"
+#include "object.hpp"
 
 namespace lox
 {
@@ -10,7 +11,8 @@ namespace lox
     {
         BOOL,
         NIL,
-        NUMBER
+        NUMBER,
+        OBJECT
     };
 
     struct value
@@ -20,6 +22,7 @@ namespace lox
         {
             bool boolean;
             double number;
+            obj* object;
         } as;
 
         static value nil();
@@ -27,12 +30,18 @@ namespace lox
         static value from(bool value);
 
         static value from(double value);
+
+        static value from(obj* value);
         
         bool is_nil() const;
 
         bool is_boolean() const;
         
         bool is_number() const;
+
+        bool is_object() const;
+
+        bool is_string() const;
 
         bool is_falsey() const;
 

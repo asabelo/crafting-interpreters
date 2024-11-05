@@ -3,6 +3,7 @@
 
 #include "compiler.hpp"
 #include "debug.hpp"
+#include "memory.hpp"
 
 lox::vm::vm(lox::chunk& chunk) 
     : m_chunk{ chunk }
@@ -10,6 +11,31 @@ lox::vm::vm(lox::chunk& chunk)
     , m_stack{}
 {
 }
+
+static void free_object(lox::obj* object)
+{
+    switch (object->type)
+    {
+    case lox::obj_type::STRING: 
+        auto* string = static_cast<lox::obj_string*>(object);
+        lox::free_array<char>(string->chars, string->length + 1);
+        lox::free(string);
+        break;
+    }
+}
+
+lox::vm::~vm()
+{
+    auto* obj = vm::objects;
+
+    while (obj)
+    {
+        auto* next = obj->next;
+
+    }
+}
+
+lox::obj* lox::vm::objects = nullptr;
 
 lox::interpret_result lox::vm::run()
 {
@@ -93,7 +119,20 @@ lox::interpret_result lox::vm::run()
                 break;
 
             case op_code::OP_ADD:
-                binary_op(std::plus{});
+                if (m_stack.peek(0).is_string() && m_stack.peek(1).is_string())
+                {
+
+                }
+                else if (m_stack.peek(0).is_number() && m_stack.peek(1).is_number())
+                {
+                    binary_op(std::plus{});
+                }
+                else
+                {
+                    runtime_error("Operands must be two numbers or two strings.");
+
+                    return interpret_result::RUNTIME_ERROR;
+                }
                 break;
 
             case op_code::OP_SUBTRACT:
@@ -133,6 +172,22 @@ lox::interpret_result lox::vm::run()
             return result;
         }
     }
+}
+
+void lox::vm::concatenate()
+{
+    auto* b = static_cast<obj_string*>(m_stack.pop().as.object);
+    auto* a = static_cast<obj_string*>(m_stack.pop().as.object);
+
+    auto length = a->length + b->length;
+    auto* chars = allocate<char>(length + 1);
+
+    std::copy(a->chars, a->chars + a->length, chars);
+    std::copy(b->chars, b->chars + b->length, chars + a->length);
+    chars[length] = '\0';
+
+    auto* result = take_string(chars, length);
+    m_stack.push(value::from(result));
 }
 
 void lox::vm::runtime_error(const std::string_view format, const auto&&... params)

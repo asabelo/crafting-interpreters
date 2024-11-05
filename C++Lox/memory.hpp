@@ -27,14 +27,35 @@ namespace lox
     }
 
     template <typename T>
-    static T* grow_array(T* pointer, std::size_t old_count, std::size_t new_count)
+    static inline T* allocate(std::size_t count = 1)
     {
-        return (T*)reallocate(pointer, sizeof(T) * old_count, sizeof(T) * new_count);
+        return static_cast<T*>
+        (
+            reallocate(nullptr, 0, sizeof(T) * count)
+        );
     }
 
     template <typename T>
-    static T* free_array(T* pointer, std::size_t old_count)
+    static inline T* grow_array(T* pointer, std::size_t old_count, std::size_t new_count)
     {
-        return (T*)reallocate(pointer, sizeof(T) * old_count, 0);
+        return static_cast<T*>
+        (
+            reallocate(pointer, sizeof(T) * old_count, sizeof(T) * new_count)
+        );
+    }
+
+    template <typename T>
+    static inline void free(T* element)
+    {
+        reallocate(element, sizeof(T), 0);
+    }
+
+    template <typename T>
+    static inline T* free_array(T* pointer, std::size_t old_count)
+    {
+        return static_cast<T*>
+        (
+            reallocate(pointer, sizeof(T) * old_count, 0)
+        );
     }
 }

@@ -5,6 +5,7 @@
 
 #include "chunk.hpp"
 #include "common.hpp"
+#include "object.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
 
@@ -49,6 +50,8 @@ namespace lox
 
         void number();
 
+        void string();
+
         void grouping();
 
         void unary();
@@ -83,8 +86,8 @@ namespace lox
             { token_type::LESS,          { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
             { token_type::LESS_EQUAL,    { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
             { token_type::IDENTIFIER,    { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::STRING,        { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::NUMBER,        { std::bind(&compiler::number, this), std::nullopt, precedence::NONE} },
+            { token_type::STRING,        { std::bind(&compiler::string, this), std::nullopt, precedence::NONE } },
+            { token_type::NUMBER,        { std::bind(&compiler::number, this), std::nullopt, precedence::NONE } },
             { token_type::AND,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::CLASS,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::ELSE,          { std::nullopt, std::nullopt, precedence::NONE } },

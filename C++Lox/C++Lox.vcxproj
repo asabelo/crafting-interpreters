@@ -135,6 +135,7 @@
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="object.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="scanner.cpp" />
     <ClCompile Include="value.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="compiler.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="memory.hpp" />
+    <ClInclude Include="object.hpp" />
     <ClInclude Include="parser.hpp" />
     <ClInclude Include="scanner.hpp" />
     <ClInclude Include="stack.hpp" />
