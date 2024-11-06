@@ -121,7 +121,7 @@ lox::interpret_result lox::vm::run()
             case op_code::OP_ADD:
                 if (m_stack.peek(0).is_string() && m_stack.peek(1).is_string())
                 {
-
+                    concatenate();
                 }
                 else if (m_stack.peek(0).is_number() && m_stack.peek(1).is_number())
                 {

@@ -99,5 +99,14 @@ void lox::print_value(value value)
     case value_type::NUMBER:
         std::cout << value.as.number;
         break;
+
+    case value_type::OBJECT:
+        switch (value.as.object->type)
+        {
+        case obj_type::STRING:
+            std::cout << '"' << static_cast<obj_string*>(value.as.object)->chars << '"';
+            break;
+        }
+        break;
     }
 }
