@@ -34,7 +34,7 @@ namespace lox
 
         array(array& other) = delete;
 
-        array& operator=(array other) = delete;
+        array& operator=(array& other) = delete;
 
         idx_t count() const { return m_count; }
 
@@ -56,6 +56,11 @@ namespace lox
             m_elements[m_count++] = element;
 
             return m_count - 1;
+        }
+
+        void reset()
+        {
+            m_count = 0;
         }
     };
 }

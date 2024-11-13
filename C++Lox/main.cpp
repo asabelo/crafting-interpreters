@@ -1,34 +1,67 @@
 
-#include "common.hpp"
+#include <fstream>
+#include <streambuf>
+
 #include "chunk.hpp"
+#include "common.hpp"
 #include "debug.hpp"
+#include "vm.hpp"
+
+int repl(lox::vm&);
+
+int run_file(lox::vm&, const std::string&);
 
 int main(int argc, char* argv[])
 {
-    auto c = lox::chunk{};
+    lox::chunk chunk{};
+    lox::vm vm{ chunk };
 
-    //c.add(lox::op_code::OP_CONSTANT, 123);
-    //c.add(c.constants().add(1.2), 123);
+    if (argc == 1)
+    {
+        return repl(vm);
+    }
+    else if (argc == 2)
+    {
+        return run_file(vm, argv[1]);
+    }
+    else
+    {
+        std::cerr << "Usage: clox [path]\n";
 
-    c.add(lox::op_code::OP_RETURN, 123);
-    c.add(lox::op_code::OP_RETURN, 123);
+        return 64;
+    }
+}
 
-    c.add(lox::op_code::OP_RETURN, 123);
+static int repl(lox::vm& vm)
+{
+    std::string line;
 
-    c.add(lox::op_code::OP_CONSTANT, 124);
-    c.add(c.constants().add(45), 124);
+    while (true)
+    {
+        std::cout << "> ";
 
-    c.add(lox::op_code::OP_RETURN, 124);
-    c.add(lox::op_code::OP_RETURN, 125);
-    c.add(lox::op_code::OP_RETURN, 126);
-    c.add(lox::op_code::OP_RETURN, 127);
-    c.add(lox::op_code::OP_RETURN, 127);
-    c.add(lox::op_code::OP_RETURN, 127);
-    c.add(lox::op_code::OP_RETURN, 127);
+        if (!std::getline(std::cin, line))
+        {
+            std::cout << '\n';
+            break;
+        }
 
+        vm.interpret(line);
+    }
 
+    return 0;
+}
 
-    lox::disassemble_chunk(c, "test chunk");
+static int run_file(lox::vm& vm, const std::string& path)
+{
+    std::ifstream file_stream{ path };
+
+    std::string source{ std::istreambuf_iterator<char>{ file_stream }, {} };
+
+    auto result = vm.interpret(source);
+
+    if (result == lox::interpret_result::COMPILE_ERROR) return 65;
+    if (result == lox::interpret_result::RUNTIME_ERROR) return 70;
 
     return 0;
 }

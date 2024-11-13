@@ -10,8 +10,20 @@ namespace lox
     // Bytecode instruction operation code
     enum op_code : uint8_t
     {
-        OP_RETURN,
-        OP_CONSTANT
+        OP_CONSTANT,
+        OP_NIL,
+        OP_TRUE,
+        OP_FALSE,
+        OP_EQUAL,
+        OP_GREATER,
+        OP_LESS,
+        OP_ADD,
+        OP_SUBTRACT,
+        OP_MULTIPLY,
+        OP_DIVIDE,
+        OP_NOT,
+        OP_NEGATE,
+        OP_RETURN
     };
 
     struct line_info
@@ -29,7 +41,6 @@ namespace lox
         value_array m_constants = {};
 
     public:
-
               line_array& lines()       { return m_lines; }
         const line_array& lines() const { return m_lines; }
 

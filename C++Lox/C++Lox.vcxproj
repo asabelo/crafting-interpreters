@@ -132,17 +132,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="compiler.cpp" />
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="object.cpp" />
+    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="scanner.cpp" />
     <ClCompile Include="value.cpp" />
+    <ClCompile Include="vm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="array.hpp" />
     <ClInclude Include="chunk.hpp" />
     <ClInclude Include="common.hpp" />
+    <ClInclude Include="compiler.hpp" />
     <ClInclude Include="debug.hpp" />
     <ClInclude Include="memory.hpp" />
+    <ClInclude Include="object.hpp" />
+    <ClInclude Include="parser.hpp" />
+    <ClInclude Include="scanner.hpp" />
+    <ClInclude Include="stack.hpp" />
     <ClInclude Include="value.hpp" />
+    <ClInclude Include="vm.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

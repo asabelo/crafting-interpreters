@@ -2,9 +2,9 @@
 #include "debug.hpp"
 #include "value.hpp"
 
-void lox::disassemble_chunk(const chunk& chunk, const char* name)
+void lox::disassemble_chunk(const chunk& chunk, const std::string& name)
 {
-    std::printf("== %s ==\n", name);
+    std::cout << std::format("== {} ==\n", name);
 
     for (chunk::idx_t offset = 0; offset < chunk.count();)
     {
@@ -12,37 +12,37 @@ void lox::disassemble_chunk(const chunk& chunk, const char* name)
     }
 }
 
-static lox::chunk::idx_t constant_instruction(const char* name, const lox::chunk& chunk, lox::chunk::idx_t offset)
+static lox::chunk::idx_t constant_instruction(const std::string& name, const lox::chunk& chunk, lox::chunk::idx_t offset)
 {
     auto constant = chunk.get(offset + 1);
     
-    std::printf("%-16s %4d '", name, constant);
+    std::cout << std::format("{:16} {:4} '", name, constant);
     
     lox::print_value(chunk.constants().get(constant));
     
-    std::printf("'\n");
+    std::cout << "'\n";
 
     return offset + 2;
 }
 
-static lox::chunk::idx_t simple_instruction(const char* name, lox::chunk::idx_t offset)
+static lox::chunk::idx_t simple_instruction(const std::string& name, lox::chunk::idx_t offset)
 {
-    std::printf("%s\n", name);
+    std::cout << name << '\n';
 
     return offset + 1;
 }
 
 int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
 {
-    std::printf("%04d ", static_cast<int>(offset));
+    std::cout << std::format("{:0>4}", static_cast<int>(offset));
 
     if (offset > 0 && chunk.get_line(offset) == chunk.get_line(offset - 1))
     {
-        printf("   | ");
+        std::cout << "   | ";
     }
     else
     {
-        printf("%4d ", chunk.get_line(offset));
+        std::cout << std::format("{:4} ", chunk.get_line(offset));
     }
 
     auto instruction = chunk.get(offset);
@@ -51,6 +51,42 @@ int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
     {
     case op_code::OP_CONSTANT:
         return constant_instruction("OP_CONSTANT", chunk, offset);
+
+    case op_code::OP_NIL:
+        return simple_instruction("OP_NIL", offset);
+
+    case op_code::OP_TRUE:
+        return simple_instruction("OP_TRUE", offset);
+
+    case op_code::OP_FALSE:
+        return simple_instruction("OP_FALSE", offset);
+
+    case OP_EQUAL:
+        return simple_instruction("OP_EQUAL", offset);
+    
+    case OP_GREATER:
+        return simple_instruction("OP_GREATER", offset);
+
+    case OP_LESS:
+        return simple_instruction("OP_LESS", offset);
+
+    case op_code::OP_ADD:
+        return simple_instruction("OP_ADD", offset);
+
+    case op_code::OP_SUBTRACT:
+        return simple_instruction("OP_SUBTRACT", offset);
+
+    case op_code::OP_MULTIPLY:
+        return simple_instruction("OP_MULTIPLY", offset);
+
+    case op_code::OP_DIVIDE:
+        return simple_instruction("OP_DIVIDE", offset);
+
+    case op_code::OP_NOT:
+        return simple_instruction("OP_NOT", offset);
+
+    case op_code::OP_NEGATE:
+        return simple_instruction("OP_NEGATE", offset);
 
     case op_code::OP_RETURN:
         return simple_instruction("OP_RETURN", offset);
