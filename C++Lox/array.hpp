@@ -7,19 +7,20 @@
 
 namespace lox
 {
-    template <typename TElement, std::unsigned_integral TIndex = std::size_t>
+    template <typename TElement, typename TIndex = std::size_t, std::unsigned_integral TCapacity = std::size_t>
     class array
     {
     public:
 
-        using idx_t = TIndex;
+        using cap_t  = TCapacity;
+        using idx_t  = TIndex;
         using elem_t = TElement;
 
     protected:
 
-        idx_t m_count = 0;
+        cap_t m_count = 0;
 
-        idx_t m_capacity = 0;
+        cap_t m_capacity = 0;
 
         elem_t* m_elements = nullptr;
 
@@ -32,15 +33,21 @@ namespace lox
             if (m_elements) free_array(m_elements, m_capacity);
         }
 
+        ///
+        /// Copy constructor.
+        ///
         array(const array& other)
         {
             m_count    = other.m_count;
             m_capacity = other.m_capacity;
-            m_elements = grow_array(nullptr, 0, other.m_capacity);
+            m_elements = grow_array(m_elements, 0, other.m_capacity);
 
             std::copy(other.m_elements, other.m_elements + other.m_count, m_elements);
         }
 
+        ///
+        /// Copy assignment operator.
+        ///
         array& operator=(array other)
         {
             std::swap(m_count,    other.m_count);
@@ -50,6 +57,9 @@ namespace lox
             return *this;
         }
 
+        ///
+        /// Move constructor.
+        ///
         array(array&& other)
         {
             m_count    = other.m_count;
@@ -59,10 +69,11 @@ namespace lox
             other.m_count = 0;
             other.m_capacity = 0;
             other.m_elements = nullptr;
-
-            return *this;
         }
 
+        ///
+        /// Move assignment operator.
+        ///
         array& operator=(array&& other)
         {
             if (&other != this)
@@ -81,12 +92,42 @@ namespace lox
             return *this;
         }
 
-        idx_t capacity() const { return m_capacity; }
+        ///
+        /// Returns the amount of elements the array currently contains.
+        ///
+        cap_t count() const
+        {
+            return m_count;
+        }
 
-              elem_t& get(idx_t index)       { return m_elements[index]; }
-        const elem_t& get(idx_t index) const { return m_elements[index]; }
+        ///
+        /// Returns the maximum amount of elements the array can contain before a reallocation.
+        ///
+        cap_t capacity() const
+        {
+            return m_capacity;
+        }
 
-        idx_t add(elem_t element)
+        ///
+        /// Retrieves a reference to an element at an index.
+        ///
+        virtual elem_t& get(idx_t index) 
+        {
+            return m_elements[index]; 
+        }
+
+        ///
+        /// Retrieves a const reference to an element at an index. 
+        ///
+        virtual const elem_t& get(idx_t index) const 
+        { 
+            return m_elements[index];
+        }
+
+        ///
+        /// Adds a new element to the array and returns its index.
+        ///
+        virtual idx_t add(elem_t element)
         {
             if (m_capacity < m_count + 1)
             {
@@ -101,6 +142,9 @@ namespace lox
             return m_count - 1;
         }
 
+        ///
+        /// Sets the array's count to 0 but does not shrink its capacity.
+        ///
         void reset()
         {
             m_count = 0;
