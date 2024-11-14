@@ -32,11 +32,54 @@ namespace lox
             if (m_elements) free_array(m_elements, m_capacity);
         }
 
-        array(array& other) = delete;
+        array(const array& other)
+        {
+            m_count    = other.m_count;
+            m_capacity = other.m_capacity;
+            m_elements = grow_array(nullptr, 0, other.m_capacity);
 
-        array& operator=(array& other) = delete;
+            std::copy(other.m_elements, other.m_elements + other.m_count, m_elements);
+        }
 
-        idx_t count() const { return m_count; }
+        array& operator=(array other)
+        {
+            std::swap(m_count,    other.m_count);
+            std::swap(m_capacity, other.m_capacity);
+            std::swap(m_elements, other.m_elements);
+
+            return *this;
+        }
+
+        array(array&& other)
+        {
+            m_count    = other.m_count;
+            m_capacity = other.m_capacity;
+            m_elements = other.m_elements;
+
+            other.m_count = 0;
+            other.m_capacity = 0;
+            other.m_elements = nullptr;
+
+            return *this;
+        }
+
+        array& operator=(array&& other)
+        {
+            if (&other != this)
+            {
+                if (m_elements) free_array(m_elements, m_capacity);
+
+                m_count    = other.m_count;
+                m_capacity = other.m_capacity;
+                m_elements = other.m_elements;
+
+                other.m_count    = 0;
+                other.m_capacity = 0;
+                other.m_elements = nullptr;
+            }
+
+            return *this;
+        }
 
         idx_t capacity() const { return m_capacity; }
 
