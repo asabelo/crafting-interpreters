@@ -46,7 +46,7 @@ lox::interpret_result lox::vm::run()
 
     const auto read_constant = [this, &read_byte]()
     {
-        return m_chunk.constants().get(read_byte());
+        return m_chunk.constants().get(read_byte().op);
     };
 
     const auto binary_op = [this](auto operation)
@@ -86,7 +86,7 @@ lox::interpret_result lox::vm::run()
 
         try
         {
-            switch (read_byte())
+            switch (read_byte().op)
             {
             case op_code::OP_CONSTANT:
                 m_stack.push(read_constant());
@@ -195,8 +195,8 @@ void lox::vm::runtime_error(const std::string_view format, const auto&&... param
     std::cerr << std::vformat(format, std::make_format_args(params...)) << '\n';
 
     auto instruction = m_ip - m_chunk.count() - 1;
-    auto& line = m_chunk.lines().get(instruction);
-    std::cerr << std::format("[line {}] in script\n", line.number);
+    auto line = m_chunk.get(instruction).line;
+    std::cerr << std::format("[line {}] in script\n", line);
 
     m_stack.reset();
 }

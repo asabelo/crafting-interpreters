@@ -14,11 +14,11 @@ void lox::disassemble_chunk(const chunk& chunk, const std::string& name)
 
 static lox::chunk::idx_t constant_instruction(const std::string& name, const lox::chunk& chunk, lox::chunk::idx_t offset)
 {
-    auto constant = chunk.get(offset + 1);
+    auto& constant_info = chunk.get(offset + 1);
     
-    std::cout << std::format("{:16} {:4} '", name, constant);
+    std::cout << std::format("{:16} {:4} '", name, constant_info.op);
     
-    lox::print_value(chunk.constants().get(constant));
+    lox::print_value(chunk.constants().get(constant_info.op));
     
     std::cout << "'\n";
 
@@ -35,17 +35,19 @@ static lox::chunk::idx_t simple_instruction(const std::string& name, lox::chunk:
 int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
 {
     std::cout << std::format("{:0>4}", static_cast<int>(offset));
+    
+    const auto& op_info = chunk.get(offset);
 
-    if (offset > 0 && chunk.get_line(offset) == chunk.get_line(offset - 1))
+    if (offset > 0 && op_info.line == chunk.get(offset - 1).line)
     {
         std::cout << "   | ";
     }
     else
     {
-        std::cout << std::format("{:4} ", chunk.get_line(offset));
+        std::cout << std::format("{:4} ", op_info.line);
     }
 
-    auto instruction = chunk.get(offset);
+    auto instruction = op_info.op;
 
     switch (instruction)
     {
@@ -61,13 +63,13 @@ int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
     case op_code::OP_FALSE:
         return simple_instruction("OP_FALSE", offset);
 
-    case OP_EQUAL:
+    case op_code::OP_EQUAL:
         return simple_instruction("OP_EQUAL", offset);
     
-    case OP_GREATER:
+    case op_code::OP_GREATER:
         return simple_instruction("OP_GREATER", offset);
 
-    case OP_LESS:
+    case op_code::OP_LESS:
         return simple_instruction("OP_LESS", offset);
 
     case op_code::OP_ADD:
@@ -92,7 +94,7 @@ int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
         return simple_instruction("OP_RETURN", offset);
 
     default:
-        std::printf("Unknown opcode %d\n", instruction);
+        std::cout << std::format("Unknown opcode {}\n", instruction);
         return offset + 1;
     }
 }

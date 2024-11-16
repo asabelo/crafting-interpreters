@@ -12,7 +12,7 @@ lox::chunk& lox::compiler::current_chunk()
 
 void lox::compiler::emit(uint8_t byte)
 {
-    current_chunk().add(byte, m_parser.previous().line);
+    current_chunk().add({ byte, m_parser.previous().line });
 }
 
 void lox::compiler::emit(uint8_t first_byte, uint8_t second_byte)

@@ -13,6 +13,17 @@ int run_file(lox::vm&, const std::string&);
 
 int main(int argc, char* argv[])
 {
+    //lox::chunk c1{};
+    //c1.add({ 11, 111 });
+    //{
+    //    lox::chunk c2{};
+    //    c2.add({ 22, 222 });
+
+    //    auto c = std::move(c2);
+    //}
+
+    //return 111;
+
     lox::chunk chunk{};
     lox::vm vm{ chunk };
 
