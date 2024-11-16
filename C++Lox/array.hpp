@@ -3,12 +3,13 @@
 
 #include <concepts>
 
+#include "collection.hpp"
 #include "memory.hpp"
 
 namespace lox
 {
     template <typename TElement, typename TIndex = std::size_t, std::unsigned_integral TCapacity = std::size_t>
-    class array
+    class array : public collection<TElement, TIndex, TCapacity>
     {
     public:
 
@@ -95,7 +96,7 @@ namespace lox
         ///
         /// Returns the amount of elements the array currently contains.
         ///
-        cap_t count() const
+        cap_t count() const override
         {
             return m_count;
         }
@@ -111,7 +112,7 @@ namespace lox
         ///
         /// Retrieves a reference to an element at an index.
         ///
-        virtual elem_t& get(idx_t index) 
+        elem_t& get(idx_t index) override
         {
             return m_elements[index]; 
         }
@@ -119,7 +120,7 @@ namespace lox
         ///
         /// Retrieves a const reference to an element at an index. 
         ///
-        virtual const elem_t& get(idx_t index) const 
+        const elem_t& get(idx_t index) const override
         { 
             return m_elements[index];
         }
@@ -127,7 +128,7 @@ namespace lox
         ///
         /// Adds a new element to the array and returns its index.
         ///
-        virtual idx_t add(elem_t element)
+        idx_t add(elem_t element) override
         {
             if (m_capacity < m_count + 1)
             {
