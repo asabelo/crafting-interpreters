@@ -12,27 +12,17 @@ lox::vm::vm(lox::chunk& chunk)
 {
 }
 
-static void free_object(lox::obj* object)
-{
-    switch (object->type)
-    {
-    case lox::obj_type::STRING: 
-        auto* string = static_cast<lox::obj_string*>(object);
-        lox::free_array<char>(string->chars, string->length + 1);
-        lox::free(string);
-        break;
-    }
-}
-
 lox::vm::~vm()
 {
+    // TODO :/
+
     auto* obj = vm::objects;
 
-    while (obj)
-    {
-        auto* next = obj->next;
+    //while (obj)
+    //{
+    //    auto* next = obj->next;
 
-    }
+    //}
 }
 
 lox::obj* lox::vm::objects = nullptr;
@@ -179,15 +169,11 @@ void lox::vm::concatenate()
     auto* b = static_cast<obj_string*>(m_stack.pop().as.object);
     auto* a = static_cast<obj_string*>(m_stack.pop().as.object);
 
-    auto length = a->length + b->length;
-    auto* chars = allocate<char>(length + 1);
+    a->concat(*b);
 
-    std::copy(a->chars, a->chars + a->length, chars);
-    std::copy(b->chars, b->chars + b->length, chars + a->length);
-    chars[length] = '\0';
+    delete b;
 
-    auto* result = take_string(chars, length);
-    m_stack.push(value::from(result));
+    m_stack.push(value::from(a));
 }
 
 void lox::vm::runtime_error(const std::string_view format, const auto&&... params)

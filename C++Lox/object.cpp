@@ -4,50 +4,107 @@
 #include "memory.hpp"
 #include "vm.hpp"
 
-template <typename T = lox::obj>
-static T* allocate_obj(lox::obj_type type)
+lox::obj_string::obj_string(std::string_view text)
+    : obj{ obj_type::STRING }
 {
-    auto* obj = static_cast<lox::obj*>(lox::allocate<T>());
+    m_length = text.length();
+    m_chars = allocate<char>(text.length() + 1);
+    m_chars[m_length] = '\0';
 
-    obj->type = type;
-    obj->next = lox::vm::objects;
-    lox::vm::objects = obj;
-
-    return static_cast<T*>(obj);
+    std::copy(text.cbegin(), text.cend(), m_chars);
 }
 
-static lox::obj_string* allocate_string(char* chars, std::size_t length)
+lox::obj_string::~obj_string()
 {
-    auto* string = allocate_obj<lox::obj_string>(lox::obj_type::STRING);
-
-    string->length = length;
-    string->chars = chars;
-
-    return string;
+    lox::free_array(m_chars, m_length);
 }
 
-lox::obj_string* lox::take_string(char* chars, std::size_t length)
+lox::obj_string::obj_string(const obj_string& other)
+    : obj{ obj_type::STRING }
 {
-    return allocate_string(chars, length);
+    m_length = other.m_length;
+    m_chars = allocate<char>(m_length);
+
+    std::copy(other.m_chars, other.m_chars + other.m_length, m_chars);
 }
 
-lox::obj_string* lox::copy_string(const std::string_view text)
+lox::obj_string& lox::obj_string::operator=(obj_string other)
 {
-    auto* chars = allocate<char>(text.length() + 1);
+    std::swap(m_length, other.m_length);
+    std::swap(m_chars, other.m_chars);
 
-    std::copy(text.cbegin(), text.cend(), chars);
-
-    chars[text.length()] = '\0';
-
-    return allocate_string(chars, text.length());
+    return *this;
 }
 
-void lox::print_object(value value)
+lox::obj_string::obj_string(obj_string&& other) noexcept
+    : obj{ obj_type::STRING }
 {
-    switch (value.as.object->type)
+    m_length = other.m_length;
+    m_chars = other.m_chars;
+
+    other.m_length = 0;
+    other.m_chars = nullptr;
+}
+
+lox::obj_string& lox::obj_string::operator=(obj_string&& other) noexcept
+{
+    if (&other != this)
     {
-    case lox::obj_type::STRING:
-        std::cout << static_cast<obj_string*>(value.as.object)->chars;
-        break;
+        if (m_chars) free_array(m_chars, m_length);
+
+        m_length = other.m_length;
+        m_chars = other.m_chars;
+
+        other.m_length = 0;
+        other.m_chars = nullptr;
     }
+
+    return *this;
+}
+
+void* lox::obj_string::operator new(std::size_t count)
+{
+    return allocate<obj_string>(count / sizeof(obj_string));
+}
+
+void lox::obj_string::operator delete(void* ptr)
+{
+    return free(static_cast<obj_string*>(ptr));
+}
+
+std::size_t lox::obj_string::length() const
+{
+    return m_length;
+}
+
+const char* lox::obj_string::chars() const
+{
+    return m_chars;
+}
+
+void lox::obj_string::concat(const obj_string& other)
+{
+    auto old_length = m_length;
+    auto new_length = m_length = old_length + other.m_length;
+
+    m_chars = lox::grow_array(m_chars, old_length, new_length + 1);
+    m_chars[new_length] = '\0';
+
+    std::copy(other.m_chars, other.m_chars + other.m_length, m_chars + old_length);
+}
+
+void lox::obj_string::print() const
+{
+    std::cout << '"' << m_chars << '"';
+}
+
+lox::obj::obj(obj_type type)
+    : m_type{ type }
+    , m_next{ nullptr }
+{
+}
+
+lox::obj_type lox::obj::type() const
+{
+    return m_type;
 }

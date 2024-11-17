@@ -12,20 +12,51 @@ namespace lox
         STRING
     };
 
-    struct obj
+    class obj
     {
-        obj_type type;
-        obj* next = nullptr;
+    protected:
+
+        obj_type m_type;
+        obj*     m_next = nullptr;
+
+        obj(obj_type type);
+
+    public:
+
+        obj_type type() const;
+
+        virtual void print() const = 0;
     };
 
-    struct obj_string : public obj
+    class obj_string : public obj
     {
-        std::size_t length;
-        char* chars;
+        std::size_t m_length = 0;
+        char*       m_chars  = nullptr;
+
+    public:
+
+        obj_string(std::string_view text);
+
+        ~obj_string();
+
+        obj_string(const obj_string& other);
+
+        obj_string& operator=(obj_string other);
+
+        obj_string(obj_string&& other) noexcept;
+
+        obj_string& operator=(obj_string&& other) noexcept;
+
+        void* operator new(std::size_t count);
+
+        void operator delete(void* ptr);
+
+        std::size_t length() const;
+
+        const char* chars() const;
+
+        void concat(const obj_string& other);
+
+        void print() const final;
     };
-
-    obj_string* take_string(char* chars, std::size_t length);
-    obj_string* copy_string(const std::string_view text);
-
-    void print_object(value value);
 }

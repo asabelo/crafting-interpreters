@@ -59,7 +59,7 @@ bool lox::value::is_object() const
 
 bool lox::value::is_string() const
 {
-    return is_object() && this->as.object->type == obj_type::STRING;
+    return is_object() && this->as.object->type() == obj_type::STRING;
 }
 
 bool lox::value::is_falsey() const
@@ -79,8 +79,8 @@ bool lox::value::equals(const value other) const
     case value_type::OBJECT:
         auto* str_a = static_cast<obj_string*>(this->as.object);
         auto* str_b = static_cast<obj_string*>(other.as.object);
-        return str_a->length == str_b->length
-            && std::strcmp(str_a->chars, str_b->chars) == 0;
+        return str_a->length() == str_b->length()
+            && std::strcmp(str_a->chars(), str_b->chars()) == 0;
     }
 }
 
@@ -101,12 +101,7 @@ void lox::print_value(value value)
         break;
 
     case value_type::OBJECT:
-        switch (value.as.object->type)
-        {
-        case obj_type::STRING:
-            std::cout << '"' << static_cast<obj_string*>(value.as.object)->chars << '"';
-            break;
-        }
+        value.as.object->print();
         break;
     }
 }
