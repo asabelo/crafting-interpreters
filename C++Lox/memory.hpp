@@ -7,7 +7,10 @@ namespace lox
 {
     static constexpr std::size_t grow_capacity(std::size_t old_capacity, double grow_factor = 1.5)
     {
-        return old_capacity < 8 ? 8 : old_capacity * grow_factor;
+        return static_cast<std::size_t>
+        (
+            old_capacity < 8 ? 8 : old_capacity * grow_factor
+        );
     }
 
     static void* reallocate(void* pointer, std::size_t old_size, std::size_t new_size)

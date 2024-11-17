@@ -140,7 +140,7 @@ namespace lox
 
             m_elements[m_count++] = element;
 
-            return m_count - 1;
+            return static_cast<idx_t>(m_count - 1);
         }
 
         ///

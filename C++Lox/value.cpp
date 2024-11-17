@@ -82,6 +82,8 @@ bool lox::value::equals(const value other) const
         return str_a->length() == str_b->length()
             && std::strcmp(str_a->chars(), str_b->chars()) == 0;
     }
+
+    return false;
 }
 
 void lox::print_value(value value)

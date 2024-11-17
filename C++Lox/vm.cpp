@@ -171,8 +171,6 @@ void lox::vm::concatenate()
 
     a->concat(*b);
 
-    delete b;
-
     m_stack.push(value::from(a));
 }
 

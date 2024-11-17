@@ -32,7 +32,7 @@ static lox::chunk::idx_t simple_instruction(const std::string& name, lox::chunk:
     return offset + 1;
 }
 
-int lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
+lox::chunk::idx_t lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
 {
     std::cout << std::format("{:0>4}", static_cast<int>(offset));
     
