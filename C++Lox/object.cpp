@@ -77,11 +77,6 @@ std::size_t lox::obj_string::length() const
     return m_length;
 }
 
-const char* lox::obj_string::chars() const
-{
-    return m_chars;
-}
-
 void lox::obj_string::concat(const obj_string& other)
 {
     auto old_length = m_length;
@@ -96,6 +91,12 @@ void lox::obj_string::concat(const obj_string& other)
 void lox::obj_string::print() const
 {
     std::cout << '"' << m_chars << '"';
+}
+
+bool lox::obj_string::equals(const obj_string& other) const
+{
+    return m_length == other.m_length
+        && std::strcmp(m_chars, other.m_chars) == 0;
 }
 
 lox::obj::obj(obj_type type)

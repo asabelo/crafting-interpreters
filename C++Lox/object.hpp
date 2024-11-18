@@ -53,10 +53,10 @@ namespace lox
 
         std::size_t length() const;
 
-        const char* chars() const;
-
         void concat(const obj_string& other);
 
         void print() const final;
+
+        bool equals(const obj_string& other) const;
     };
 }
