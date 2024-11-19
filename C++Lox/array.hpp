@@ -8,31 +8,31 @@
 
 namespace lox
 {
-    template <typename TElement, typename TIndex = std::size_t, std::unsigned_integral TCapacity = std::size_t>
+    template
+    <
+        typename               TElement, 
+        typename               TIndex     = std::size_t, 
+        std::unsigned_integral TCapacity  = std::size_t
+    >
     class array : public collection<TElement, TIndex, TCapacity>
     {
     public:
 
-        using cap_t  = TCapacity;
-        using idx_t  = TIndex;
-        using elem_t = TElement;
+        using elem_t  = TElement;
+        using idx_t   = TIndex;
+        using cap_t   = TCapacity;
 
     protected:
 
         cap_t m_count = 0;
 
         cap_t m_capacity = 0;
-
-        elem_t* m_elements = nullptr;
+        
+        std::unique_ptr<elem_t[]> m_elements = nullptr;
 
     public:
 
         array() = default;
-
-        ~array()
-        {
-            if (m_elements) free_array(m_elements, m_capacity);
-        }
 
         ///
         /// Copy constructor.
@@ -135,7 +135,7 @@ namespace lox
                 auto old_capacity = m_capacity;
                 auto new_capacity = m_capacity = grow_capacity(m_capacity);
 
-                m_elements = grow_array(m_elements, old_capacity, new_capacity);
+                grow_array(m_elements, old_capacity, new_capacity);
             }
 
             m_elements[m_count++] = element;

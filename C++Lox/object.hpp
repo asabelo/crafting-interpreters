@@ -31,13 +31,11 @@ namespace lox
     class obj_string : public obj
     {
         std::size_t m_length = 0;
-        char*       m_chars  = nullptr;
+        std::unique_ptr<char[]> m_chars = nullptr;
 
     public:
 
         obj_string(std::string_view text);
-
-        ~obj_string();
 
         obj_string(const obj_string& other);
 
@@ -46,10 +44,6 @@ namespace lox
         obj_string(obj_string&& other) noexcept;
 
         obj_string& operator=(obj_string&& other) noexcept;
-
-        void* operator new(std::size_t count);
-
-        void operator delete(void* ptr);
 
         std::size_t length() const;
 

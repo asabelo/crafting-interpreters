@@ -67,7 +67,7 @@ bool lox::value::is_falsey() const
     return is_nil() || (is_boolean() && !as.boolean);
 }
 
-bool lox::value::equals(const value other) const
+bool lox::value::equals(const value& other) const
 {
     if (this->type != other.type) return false;
 
@@ -79,8 +79,7 @@ bool lox::value::equals(const value other) const
     case value_type::OBJECT:
         auto* str_a = static_cast<obj_string*>(this->as.object);
         auto* str_b = static_cast<obj_string*>(other.as.object);
-        return str_a->length() == str_b->length()
-            && std::strcmp(str_a->chars(), str_b->chars()) == 0;
+        return str_a->equals(*str_b);
     }
 
     return false;

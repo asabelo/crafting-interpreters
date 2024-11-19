@@ -13,52 +13,22 @@ namespace lox
         );
     }
 
-    static void* reallocate(void* pointer, std::size_t old_size, std::size_t new_size)
+    template <typename T>
+    static inline void grow_array(std::unique_ptr<T[]>& old_ptr, std::size_t old_count, std::size_t new_count)
     {
-        if (new_size == 0)
-        {
-            std::free(pointer);
+        auto new_ptr = std::make_unique<T[]>(new_count);
 
-            return nullptr;
+        for (std::size_t i = 0, max_i = std::min(old_count, new_count); i < max_i; ++i)
+        {
+            std::swap(old_ptr[i], new_ptr[i]);
         }
 
-        auto result = std::realloc(pointer, new_size);
-
-        if (!result) throw std::bad_alloc{};
-
-        return result;
+        std::swap(old_ptr, new_ptr);
     }
 
     template <typename T>
-    static inline T* allocate(std::size_t count = 1)
+    static inline std::unique_ptr<T[]> allocate_array(std::size_t count)
     {
-        return static_cast<T*>
-        (
-            reallocate(nullptr, 0, sizeof(T) * count)
-        );
-    }
-
-    template <typename T>
-    static inline T* grow_array(T* pointer, std::size_t old_count, std::size_t new_count)
-    {
-        return static_cast<T*>
-        (
-            reallocate(pointer, sizeof(T) * old_count, sizeof(T) * new_count)
-        );
-    }
-
-    template <typename T>
-    static inline void free(T* element)
-    {
-        reallocate(element, sizeof(T), 0);
-    }
-
-    template <typename T>
-    static inline T* free_array(T* pointer, std::size_t old_count)
-    {
-        return static_cast<T*>
-        (
-            reallocate(pointer, sizeof(T) * old_count, 0)
-        );
+        return std::make_unique<T[]>(count);
     }
 }

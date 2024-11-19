@@ -45,7 +45,7 @@ namespace lox
 
         bool is_falsey() const;
 
-        bool equals(const value other) const;
+        bool equals(const value& other) const;
     };
 
     using value_array = array<value, uint8_t>;
