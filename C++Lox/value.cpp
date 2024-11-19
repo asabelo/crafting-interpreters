@@ -1,96 +1,116 @@
 
 #include "value.hpp"
 
+lox::value::value()
+    : m_type{ value_type::NIL }
+    , m_inner{}
+{
+}
+
+lox::value::value(bool value)
+    : m_type{ value_type::BOOL }
+    , m_inner{ value }
+{
+}
+
+lox::value::value(double value)
+    : m_type{ value_type::NUMBER }
+    , m_inner{ value }
+{
+}
+
+lox::value::value(std::shared_ptr<obj> value)
+    : m_type{ value_type::OBJECT }
+    , m_inner{ value }
+{
+}
+
 lox::value lox::value::nil()
 {
-    return
-    {
-        .type{ value_type::NIL },
-        .as{ .number{ 0 } }
-    };
+    return {};
 }
 
 lox::value lox::value::from(bool value)
 {
-    return
-    {
-        .type{ value_type::BOOL },
-        .as{ .boolean{ value } }
-    };
+    return { value };
 }
 
 lox::value lox::value::from(double value)
 {
-    return
-    {
-        .type{ value_type::NUMBER },
-        .as{ .number{ value } }
-    };
+    return { value };
 }
 
-lox::value lox::value::from(obj* value)
+lox::value lox::value::from(std::shared_ptr<obj> value)
 {
-    return
-    {
-        .type{ value_type::OBJECT },
-        .as{ .object{ value } }
-    };
+    return { value };
 }
 
 bool lox::value::is_nil() const
 {
-    return this->type == value_type::NIL;
+    return m_type == value_type::NIL;
 }
 
 bool lox::value::is_boolean() const
 {
-    return this->type == value_type::BOOL;
+    return m_type == value_type::BOOL;
 }
 
 bool lox::value::is_number() const
 {
-    return this->type == value_type::NUMBER;
+    return m_type == value_type::NUMBER;
 }
 
 bool lox::value::is_object() const
 {
-    return this->type == value_type::OBJECT;
+    return m_type == value_type::OBJECT;
 }
 
 bool lox::value::is_string() const
 {
-    return is_object() && this->as.object->type() == obj_type::STRING;
+    return is_object() && this->as_object()->type() == obj_type::STRING;
 }
 
 bool lox::value::is_falsey() const
 {
-    return is_nil() || (is_boolean() && !as.boolean);
+    return is_nil() || (is_boolean() && !std::get<bool>(m_inner));
+}
+
+bool lox::value::as_boolean() const
+{
+    return std::get<bool>(m_inner);
+}
+
+double lox::value::as_number() const
+{
+    return std::get<double>(m_inner);
+}
+
+std::shared_ptr<lox::obj> lox::value::as_object() const
+{
+    return std::get<std::shared_ptr<obj>>(m_inner);
 }
 
 bool lox::value::equals(const value& other) const
 {
-    if (this->type != other.type) return false;
+    if (m_type != other.m_type) return false;
 
-    switch (type)
+    switch (m_type)
     {
-    case value_type::BOOL:   return this->as.boolean == other.as.boolean;
+    case value_type::BOOL:   return this->as_boolean() == other.as_boolean();
     case value_type::NIL:    return true;
-    case value_type::NUMBER: return this->as.number == other.as.number;
-    case value_type::OBJECT:
-        auto* str_a = static_cast<obj_string*>(this->as.object);
-        auto* str_b = static_cast<obj_string*>(other.as.object);
-        return str_a->equals(*str_b);
+    case value_type::NUMBER: return this->as_number() == other.as_number();
+    case value_type::OBJECT: return this->as_object()->equals(*other.as_object());
     }
 
     return false;
 }
 
-void lox::print_value(value value)
+void lox::value::print() const
 {
-    switch (value.type)
+    switch (m_type)
     {
     case value_type::BOOL:
-        std::cout << (value.as.boolean ? "true" : "false");
+        std::cout << (this->as_boolean() ? "true" : "false");
         break;
 
     case value_type::NIL:
@@ -98,11 +118,11 @@ void lox::print_value(value value)
         break;
 
     case value_type::NUMBER:
-        std::cout << value.as.number;
+        std::cout << this->as_number();
         break;
 
     case value_type::OBJECT:
-        value.as.object->print();
+        this->as_object()->print();
         break;
     }
 }

@@ -31,4 +31,16 @@ namespace lox
     {
         return std::make_unique<T[]>(count);
     }
+
+    template <typename T, typename... U>
+    static inline std::shared_ptr<T> allocate_shared(U&&... args)
+    {
+        return std::make_shared<T>(std::forward<U>(args)...);
+    }
+
+    template <typename T, typename... U>
+    static inline std::unique_ptr<T> allocate_unique(U&&... args)
+    {
+        return std::make_unique<T>(std::forward<U>(args)...);
+    }
 }

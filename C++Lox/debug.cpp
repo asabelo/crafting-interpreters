@@ -18,7 +18,7 @@ static lox::chunk::idx_t constant_instruction(const std::string& name, const lox
     
     std::cout << std::format("{:16} {:4} '", name, constant_info.op);
     
-    lox::print_value(chunk.constants().get(constant_info.op));
+    chunk.constants().get(constant_info.op).print();
     
     std::cout << "'\n";
 

@@ -46,8 +46,8 @@ lox::interpret_result lox::vm::run()
             runtime_error("Operands must be numbers.");
             throw interpret_result::RUNTIME_ERROR;
         }
-        const auto b = m_stack.pop().as.number;
-        const auto a = m_stack.pop().as.number;
+        const auto b = m_stack.pop().as_number();
+        const auto a = m_stack.pop().as_number();
         m_stack.push(value::from(operation(a, b)));
     };
 
@@ -64,7 +64,7 @@ lox::interpret_result lox::vm::run()
         {
             std::cout << "[ ";
 
-            print_value(m_stack.get(i));
+            m_stack.get(i).print();
 
             std::cout << " ]";
         }
@@ -95,9 +95,11 @@ lox::interpret_result lox::vm::run()
                 break;
 
             case op_code::OP_EQUAL:
-                const auto a = m_stack.pop();
-                const auto b = m_stack.pop();
-                m_stack.push(value::from(a.equals(b)));
+                {
+                    const auto a = m_stack.pop();
+                    const auto b = m_stack.pop();
+                    m_stack.push(value::from(a.equals(b)));
+                }
                 break;
 
             case op_code::OP_GREATER:
@@ -148,11 +150,11 @@ lox::interpret_result lox::vm::run()
 
                     return interpret_result::RUNTIME_ERROR;
                 }
-                m_stack.push(value::from(-m_stack.pop().as.number));
+                m_stack.push(value::from(-m_stack.pop().as_number()));
                 break;
 
             case op_code::OP_RETURN:
-                print_value(m_stack.pop());
+                m_stack.pop().print();
                 std::cout << '\n';
                 return interpret_result::OK;
             }
@@ -166,8 +168,8 @@ lox::interpret_result lox::vm::run()
 
 void lox::vm::concatenate()
 {
-    auto* b = static_cast<obj_string*>(m_stack.pop().as.object);
-    auto* a = static_cast<obj_string*>(m_stack.pop().as.object);
+    auto b = std::static_pointer_cast<obj_string>(m_stack.pop().as_object());
+    auto a = std::static_pointer_cast<obj_string>(m_stack.pop().as_object());
 
     a->concat(*b);
 

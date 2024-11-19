@@ -5,7 +5,7 @@
 
 namespace lox
 {
-    struct value;
+    class value;
 
     enum class obj_type
     {
@@ -17,7 +17,6 @@ namespace lox
     protected:
 
         obj_type m_type;
-        obj*     m_next = nullptr;
 
         obj(obj_type type);
 
@@ -25,12 +24,15 @@ namespace lox
 
         obj_type type() const;
 
+        virtual bool equals(const obj&) const = 0;
+
         virtual void print() const = 0;
     };
 
-    class obj_string : public obj
+    class obj_string final : public obj
     {
         std::size_t m_length = 0;
+
         std::unique_ptr<char[]> m_chars = nullptr;
 
     public:
@@ -51,6 +53,6 @@ namespace lox
 
         void print() const final;
 
-        bool equals(const obj_string& other) const;
+        bool equals(const obj& other) const final;
     };
 }

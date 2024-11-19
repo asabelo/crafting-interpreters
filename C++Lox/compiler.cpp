@@ -49,7 +49,7 @@ void lox::compiler::string()
 {
     const auto text = m_parser.previous().text;
 
-    emit(value::from(new obj_string(text.substr(1, text.length() - 2))));
+    emit(value::from(allocate_shared<obj_string>(text.substr(1, text.length() - 2))));
 }
 
 void lox::compiler::grouping()
