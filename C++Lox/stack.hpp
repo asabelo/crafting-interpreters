@@ -27,7 +27,11 @@ namespace lox
         ///
         elem_t pop()
         {
-            return this->m_elements[--this->m_count];
+            elem_t aux{};
+
+            std::swap(aux, this->m_elements[--this->m_count]);
+
+            return aux;
         }
 
         ///

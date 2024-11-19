@@ -144,11 +144,12 @@ namespace lox
         }
 
         ///
-        /// Sets the array's count to 0 but does not shrink its capacity.
+        /// Empties the array.
         ///
         void reset()
         {
-            m_count = 0;
+            m_count = m_capacity = 0;
+            m_elements.reset();
         }
     };
 }
