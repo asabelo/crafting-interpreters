@@ -32,7 +32,19 @@ namespace lox
 
     public:
 
+        ///
+        /// Creates an empty array.
+        ///
         array() = default;
+
+        ///
+        /// Creates an empty array with preallocated storage for initial_capacity elements.
+        ///
+        array(cap_t initial_capacity)
+        {
+            m_capacity = initial_capacity;
+            resize_array(m_elements, static_cast<cap_t>(0), initial_capacity);
+        }
 
         ///
         /// Copy constructor.
@@ -41,7 +53,7 @@ namespace lox
         {
             m_count    = other.m_count;
             m_capacity = other.m_capacity;
-            m_elements = grow_array(m_elements, 0, other.m_capacity);
+            m_elements = resize_array(m_elements, 0, other.m_capacity);
 
             std::copy(other.m_elements, other.m_elements + other.m_count, m_elements);
         }
@@ -135,7 +147,7 @@ namespace lox
                 auto old_capacity = m_capacity;
                 auto new_capacity = m_capacity = grow_capacity(m_capacity);
 
-                grow_array(m_elements, old_capacity, new_capacity);
+                resize_array(m_elements, old_capacity, new_capacity);
             }
 
             m_elements[m_count++] = element;
