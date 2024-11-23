@@ -24,9 +24,9 @@ namespace lox
 
         obj_type type() const;
 
-        virtual bool equals(const obj&) const = 0;
-
         virtual void print() const = 0;
+
+        template <typename T> friend struct std::equal_to;
     };
 
     class obj_string final : public obj
@@ -53,6 +53,60 @@ namespace lox
 
         void print() const final;
 
-        bool equals(const obj& other) const final;
+        template <typename T> friend struct std::equal_to;
+
+        template <typename T> friend struct std::hash;
+    };
+}
+
+namespace std
+{
+    template <>
+    struct std::equal_to<lox::obj_string>
+    {
+        bool operator()(const lox::obj_string& lhs, const lox::obj_string& rhs) const
+        {
+            return std::strcmp(lhs.m_chars.get(), rhs.m_chars.get());
+        }
+    };
+
+    template <>
+    struct std::equal_to<lox::obj>
+    {
+        bool operator()(const lox::obj& lhs, const lox::obj& rhs) const
+        {
+            lox::obj_type type;
+
+            if ((type = lhs.type()) != rhs.type()) return false;
+
+            switch (type)
+            {
+            case lox::obj_type::STRING:
+                return std::equal_to<lox::obj_string>{}
+                (
+                    static_cast<const lox::obj_string&>(lhs),
+                    static_cast<const lox::obj_string&>(rhs)
+                );
+            }
+
+            return false;
+        }
+    };
+
+    template <>
+    struct std::hash<lox::obj_string>
+    {
+        std::size_t operator()(const lox::obj_string& string) const
+        {
+            std::size_t hash = 2166136261u;
+
+            for (std::size_t i = 0; i < string.m_length; ++i)
+            {
+                hash ^= static_cast<std::size_t>(std::bit_cast<uint8_t>(string.m_chars[i]));
+                hash *= 16777619u;
+            }
+
+            return hash;
+        }
     };
 }

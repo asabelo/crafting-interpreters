@@ -90,21 +90,6 @@ std::shared_ptr<lox::obj> lox::value::as_object() const
     return std::get<std::shared_ptr<obj>>(m_inner);
 }
 
-bool lox::value::equals(const value& other) const
-{
-    if (m_type != other.m_type) return false;
-
-    switch (m_type)
-    {
-    case value_type::BOOL:   return this->as_boolean() == other.as_boolean();
-    case value_type::NIL:    return true;
-    case value_type::NUMBER: return this->as_number() == other.as_number();
-    case value_type::OBJECT: return this->as_object()->equals(*other.as_object());
-    }
-
-    return false;
-}
-
 void lox::value::print() const
 {
     switch (m_type)

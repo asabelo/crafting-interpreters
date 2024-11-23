@@ -76,12 +76,6 @@ void lox::obj_string::print() const
     std::cout << '"' << m_chars << '"';
 }
 
-bool lox::obj_string::equals(const obj& other) const
-{
-    return other.type() == obj_type::STRING
-        && std::strcmp(m_chars.get(), static_cast<const obj_string&>(other).m_chars.get());
-}
-
 lox::obj::obj(obj_type type)
     : m_type{ type }
 {
