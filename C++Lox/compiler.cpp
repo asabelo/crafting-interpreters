@@ -49,7 +49,22 @@ void lox::compiler::string()
 {
     const auto text = m_parser.previous().text;
 
-    emit(value::from(allocate_shared<obj_string>(text.substr(1, text.length() - 2))));
+    auto string_contents = text.substr(1, text.length() - 2);
+
+    const auto interned_string = m_strings.maybe_get(string_contents);
+
+    if (interned_string.has_value())
+    {
+        emit(value::from(interned_string.value().value));
+    }
+    else
+    {
+        const auto ptr = allocate_shared<obj_string>(string_contents);
+
+        m_strings.add({ string_contents, ptr });
+
+        emit(value::from(ptr));
+    }
 }
 
 void lox::compiler::grouping()
@@ -141,9 +156,10 @@ void lox::compiler::parse_precedence(precedence precedence)
     }
 }
 
-lox::compiler::compiler(const std::string_view source, chunk& chunk)
+lox::compiler::compiler(const std::string_view source, chunk& chunk, string_table& strings)
     : m_chunk{ chunk }
     , m_parser{ source }
+    , m_strings{ strings }
 {
 }
 

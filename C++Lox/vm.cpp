@@ -9,12 +9,13 @@ lox::vm::vm(lox::chunk& chunk)
     : m_chunk{ chunk }
     , m_ip{ 0 }
     , m_stack{}
+    , m_strings{}
 {
 }
 
 lox::vm::~vm()
 {
-    // TODO :/
+    // TODO :/ ?
 
     auto* obj = vm::objects;
 
@@ -189,7 +190,7 @@ void lox::vm::runtime_error(const std::string_view format, const auto&&... param
 
 lox::interpret_result lox::vm::interpret(const std::string_view source)
 {
-    lox::compiler compiler{ source, m_chunk };
+    lox::compiler compiler{ source, m_chunk, m_strings };
 
     if (!compiler.compile())
     {

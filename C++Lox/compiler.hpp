@@ -8,6 +8,7 @@
 #include "object.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
+#include "table.hpp"
 
 namespace lox
 {
@@ -37,6 +38,7 @@ namespace lox
     {
         chunk& m_chunk;
         parser m_parser;
+        string_table& m_strings;
 
         chunk& current_chunk();
 
@@ -110,7 +112,7 @@ namespace lox
 
     public:
 
-        compiler(const std::string_view source, chunk& chunk);
+        compiler(const std::string_view source, chunk& chunk, string_table& strings);
 
         bool compile();
     };

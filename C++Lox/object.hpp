@@ -66,7 +66,7 @@ namespace std
     {
         bool operator()(const lox::obj_string& lhs, const lox::obj_string& rhs) const
         {
-            return std::strcmp(lhs.m_chars.get(), rhs.m_chars.get());
+            return &lhs == &rhs;
         }
     };
 

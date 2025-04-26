@@ -4,6 +4,7 @@
 #include "chunk.hpp"
 #include "common.hpp"
 #include "stack.hpp"
+#include "table.hpp"
 
 namespace lox
 {
@@ -21,6 +22,8 @@ namespace lox
         chunk::idx_t m_ip;
 
         stack<value> m_stack;
+
+        string_table m_strings;
 
         interpret_result run();
 

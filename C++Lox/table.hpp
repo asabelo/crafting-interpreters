@@ -191,4 +191,6 @@ namespace lox
             return {};
         }
     };
+
+    using string_table = table<std::string_view, std::shared_ptr<obj_string>>;
 };
