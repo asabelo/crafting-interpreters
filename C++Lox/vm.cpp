@@ -95,6 +95,10 @@ lox::interpret_result lox::vm::run()
                 m_stack.push(value::from(false));
                 break;
 
+            case op_code::OP_POP:
+                m_stack.pop();
+                break;
+
             case op_code::OP_EQUAL:
                 {
                     const auto a = m_stack.pop();

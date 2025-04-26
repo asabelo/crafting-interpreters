@@ -15,6 +15,7 @@ namespace lox
         OP_NIL,
         OP_TRUE,
         OP_FALSE,
+        OP_POP,
         OP_EQUAL,
         OP_GREATER,
         OP_LESS,

@@ -63,6 +63,9 @@ lox::chunk::idx_t lox::disassemble_instruction(const chunk& chunk, chunk::idx_t 
     case op_code::OP_FALSE:
         return simple_instruction("OP_FALSE", offset);
 
+    case op_code::OP_POP:
+        return simple_instruction("OP_POP", offset);
+
     case op_code::OP_EQUAL:
         return simple_instruction("OP_EQUAL", offset);
     

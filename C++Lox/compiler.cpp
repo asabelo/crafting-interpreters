@@ -48,6 +48,10 @@ void lox::compiler::statement()
     {
         print_statement();
     }
+    else
+    {
+        expression_statement();
+    }
 }
 
 void lox::compiler::declaration()
@@ -58,6 +62,15 @@ void lox::compiler::declaration()
 void lox::compiler::expression()
 {
     parse_precedence(precedence::ASSIGNMENT);
+}
+
+void lox::compiler::expression_statement()
+{
+    expression();
+
+    m_parser.consume(token_type::SEMICOLON, "Expect ';' after expression.");
+
+    emit(op_code::OP_POP);
 }
 
 void lox::compiler::number()

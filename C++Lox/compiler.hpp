@@ -56,6 +56,8 @@ namespace lox
 
         void expression();
 
+        void expression_statement();
+
         void number();
 
         void string();
