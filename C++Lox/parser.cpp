@@ -44,6 +44,20 @@ void lox::parser::consume(const token_type type, const std::string_view message)
     error_at_current(message);
 }
 
+bool lox::parser::check(const token_type type) const
+{
+    return m_current.type == type;
+}
+
+bool lox::parser::match(const token_type type)
+{
+    if (!check(type)) return false;
+
+    advance();
+
+    return true;
+}
+
 void lox::parser::error_at_current(const std::string_view message)
 {
     error_at(m_current, message);

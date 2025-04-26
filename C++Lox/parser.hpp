@@ -27,6 +27,10 @@ namespace lox
 
         void consume(const token_type type, const std::string_view message);
 
+        bool check(const token_type type) const;
+
+        bool match(const token_type type);
+
         void error_at_current(const std::string_view message);
 
         void error(const std::string_view message);

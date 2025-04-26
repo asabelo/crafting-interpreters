@@ -48,6 +48,12 @@ namespace lox
 
         uint8_t make_constant(value value);
 
+        void print_statement();
+
+        void statement();
+
+        void declaration();
+
         void expression();
 
         void number();

@@ -154,9 +154,12 @@ lox::interpret_result lox::vm::run()
                 m_stack.push(value::from(-m_stack.pop().as_number()));
                 break;
 
-            case op_code::OP_RETURN:
+            case op_code::OP_PRINT:
                 m_stack.pop().print();
                 std::cout << '\n';
+                break;
+
+            case op_code::OP_RETURN:
                 return interpret_result::OK;
             }
         }

@@ -33,6 +33,28 @@ uint8_t lox::compiler::make_constant(value value)
     return current_chunk().constants().add(value);
 }
 
+void lox::compiler::print_statement()
+{
+    expression();
+    
+    m_parser.consume(token_type::SEMICOLON, "Expect ';' after value.");
+
+    emit(op_code::OP_PRINT);
+}
+
+void lox::compiler::statement()
+{
+    if (m_parser.match(token_type::PRINT))
+    {
+        print_statement();
+    }
+}
+
+void lox::compiler::declaration()
+{
+    statement();
+}
+
 void lox::compiler::expression()
 {
     parse_precedence(precedence::ASSIGNMENT);
@@ -167,7 +189,10 @@ bool lox::compiler::compile()
 {
     m_parser.advance();
 
-    expression();
+    while (!m_parser.match(token_type::END_OF_FILE))
+    {
+        declaration();
+    }
 
     m_parser.consume(token_type::END_OF_FILE, "Expect end of expression.");
 

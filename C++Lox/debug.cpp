@@ -90,6 +90,9 @@ lox::chunk::idx_t lox::disassemble_instruction(const chunk& chunk, chunk::idx_t 
     case op_code::OP_NEGATE:
         return simple_instruction("OP_NEGATE", offset);
 
+    case op_code::OP_PRINT:
+        return simple_instruction("OP_PRINT", offset);
+
     case op_code::OP_RETURN:
         return simple_instruction("OP_RETURN", offset);
 
