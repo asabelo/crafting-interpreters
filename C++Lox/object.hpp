@@ -39,13 +39,13 @@ namespace lox
 
         obj_string(std::string_view text);
 
-        obj_string(const obj_string& other);
+        obj_string(const obj_string& other) = delete;
 
-        obj_string& operator=(obj_string other);
+        obj_string& operator=(obj_string other) = delete;
 
-        obj_string(obj_string&& other) noexcept;
+        obj_string(obj_string&& other) noexcept = delete;
 
-        obj_string& operator=(obj_string&& other) noexcept;
+        obj_string& operator=(obj_string&& other) noexcept = delete;
 
         std::size_t length() const;
 
