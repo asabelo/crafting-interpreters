@@ -98,7 +98,7 @@ lox::interpret_result lox::vm::run()
                 {
                     const auto a = m_stack.pop();
                     const auto b = m_stack.pop();
-                    m_stack.push(value::from(a.equals(b)));
+                    m_stack.push(value::from(std::equal_to<value>{}(a, b)));
                 }
                 break;
 

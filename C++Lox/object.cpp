@@ -65,7 +65,7 @@ void lox::obj_string::concat(const obj_string& other)
     auto old_length = m_length;
     auto new_length = m_length = old_length + other.m_length;
 
-    lox::grow_array(m_chars, old_length, new_length + 1);
+    lox::resize_array(m_chars, old_length, new_length + 1);
     m_chars[new_length] = '\0';
 
     std::copy(other.m_chars.get(), other.m_chars.get() + other.m_length, m_chars.get() + old_length);
@@ -74,12 +74,6 @@ void lox::obj_string::concat(const obj_string& other)
 void lox::obj_string::print() const
 {
     std::cout << '"' << m_chars << '"';
-}
-
-bool lox::obj_string::equals(const obj& other) const
-{
-    return other.type() == obj_type::STRING
-        && std::strcmp(m_chars.get(), static_cast<const obj_string&>(other).m_chars.get());
 }
 
 lox::obj::obj(obj_type type)

@@ -45,10 +45,33 @@ namespace lox
         double as_number() const;
         std::shared_ptr<obj> as_object() const;
 
-        bool equals(const value& other) const;
-
         void print() const;
+
+        template <typename T> friend struct std::equal_to;
     };
 
     using value_array = array<value, uint8_t>;
+}
+
+namespace std
+{
+    template <>
+    struct std::equal_to<lox::value>
+    {
+        bool operator()(const lox::value& lhs, const lox::value& rhs) const
+        {
+            lox::value_type type;
+            if ((type = lhs.m_type) != rhs.m_type) return false;
+
+            switch (type)
+            {
+            case lox::value_type::BOOL:   return std::equal_to{}(lhs.as_boolean(), rhs.as_boolean());
+            case lox::value_type::NIL:    return true;
+            case lox::value_type::NUMBER: return std::equal_to{}(lhs.as_number(), rhs.as_number());
+            case lox::value_type::OBJECT: return std::equal_to<lox::obj>{}(*lhs.as_object(), *rhs.as_object());
+            }
+
+            return false;
+        }
+    };
 }
