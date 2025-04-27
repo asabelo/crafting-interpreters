@@ -72,6 +72,9 @@ lox::chunk::idx_t lox::disassemble_instruction(const chunk& chunk, chunk::idx_t 
     case op_code::OP_DEFINE_GLOBAL:
         return constant_instruction("OP_DEFINE_GLOBAL", chunk, offset);
 
+    case op_code::OP_SET_GLOBAL:
+        return constant_instruction("OP_SET_GLOBAL", chunk, offset);
+
     case op_code::OP_EQUAL:
         return simple_instruction("OP_EQUAL", offset);
     

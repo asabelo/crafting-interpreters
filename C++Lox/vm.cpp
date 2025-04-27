@@ -102,7 +102,7 @@ lox::interpret_result lox::vm::run()
 
             case op_code::OP_GET_GLOBAL:
                 {
-                    auto name = static_pointer_cast<obj_string>(read_constant().as_object());
+                    auto name = read_constant().as_string();
 
                     if (!m_globals.contains(name))
                     {
@@ -111,13 +111,27 @@ lox::interpret_result lox::vm::run()
                     }
 
                     m_stack.push(m_globals[name]);
-                    break;
                 }
+                break;
 
             case op_code::OP_DEFINE_GLOBAL:
                 {
-                    auto name = static_pointer_cast<obj_string>(read_constant().as_object());
+                    auto name = read_constant().as_string();
                     m_globals[name] = m_stack.pop();
+                }
+                break;
+
+            case op_code::OP_SET_GLOBAL:
+                {
+                    auto name = read_constant().as_string();
+
+                    if (!m_globals.contains(name))
+                    {
+                        runtime_error("Undefined variable '{0}'.", name->chars());
+                        return interpret_result::RUNTIME_ERROR;
+                    }
+
+                    m_globals[name] = m_stack.peek();
                 }
                 break;
 
@@ -198,8 +212,8 @@ lox::interpret_result lox::vm::run()
 
 void lox::vm::concatenate()
 {
-    auto b = std::static_pointer_cast<obj_string>(m_stack.pop().as_object());
-    auto a = std::static_pointer_cast<obj_string>(m_stack.pop().as_object());
+    auto b = m_stack.pop().as_string();
+    auto a = m_stack.pop().as_string();
 
     a->concat(*b);
 

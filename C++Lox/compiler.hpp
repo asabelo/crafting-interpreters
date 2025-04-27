@@ -29,9 +29,9 @@ namespace lox
 
     struct parse_rule
     {
-        std::optional<std::function<void()>> prefix = std::nullopt;
-        std::optional<std::function<void()>> infix  = std::nullopt;
-        precedence precedence                       = precedence::NONE;
+        std::optional<std::function<void(bool)>> prefix = std::nullopt;
+        std::optional<std::function<void(bool)>> infix  = std::nullopt;
+        precedence precedence                           = precedence::NONE;
     };
 
     class compiler
@@ -60,21 +60,21 @@ namespace lox
 
         void expression_statement();
 
-        void number();
+        void number(bool);
 
-        void string();
+        void string(bool);
 
-        void named_variable(token name);
+        void named_variable(token name, bool can_assign);
 
-        void variable();
+        void variable(bool can_assign);
 
-        void grouping();
+        void grouping(bool);
 
-        void unary();
+        void unary(bool);
 
-        void binary();
+        void binary(bool);
 
-        void literal();
+        void literal(bool);
 
         const parse_rule& get_rule(token_type type) const;
 
@@ -88,42 +88,42 @@ namespace lox
 
         const std::unordered_map<token_type, parse_rule> rules // sorry
         {
-            { token_type::LEFT_PAREN,    { std::bind(&compiler::grouping, this), std::nullopt, precedence::NONE } },
+            { token_type::LEFT_PAREN,    { std::bind(&compiler::grouping, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
             { token_type::RIGHT_PAREN,   { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::LEFT_BRACE,    { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::RIGHT_BRACE,   { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::COMMA,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::DOT,           { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::MINUS,         { std::bind(&compiler::unary, this), std::bind(&compiler::binary, this), precedence::TERM} },
-            { token_type::PLUS,          { std::nullopt, std::bind(&compiler::binary, this), precedence::TERM} },
+            { token_type::MINUS,         { std::bind(&compiler::unary, this, std::placeholders::_1), std::bind(&compiler::binary, this, std::placeholders::_1), precedence::TERM} },
+            { token_type::PLUS,          { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::TERM} },
             { token_type::SEMICOLON,     { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::SLASH,         { std::nullopt, std::bind(&compiler::binary, this), precedence::FACTOR} },
-            { token_type::STAR,          { std::nullopt, std::bind(&compiler::binary, this), precedence::FACTOR} },
-            { token_type::BANG,          { std::bind(&compiler::unary, this), std::nullopt, precedence::NONE } },
-            { token_type::BANG_EQUAL,    { std::nullopt, std::bind(&compiler::binary, this), precedence::EQUALITY } },
+            { token_type::SLASH,         { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::FACTOR} },
+            { token_type::STAR,          { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::FACTOR} },
+            { token_type::BANG,          { std::bind(&compiler::unary, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
+            { token_type::BANG_EQUAL,    { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::EQUALITY } },
             { token_type::EQUAL,         { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::EQUAL_EQUAL,   { std::nullopt, std::bind(&compiler::binary, this), precedence::EQUALITY } },
-            { token_type::GREATER,       { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
-            { token_type::GREATER_EQUAL, { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
-            { token_type::LESS,          { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
-            { token_type::LESS_EQUAL,    { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
-            { token_type::IDENTIFIER,    { std::bind(&compiler::variable, this), std::nullopt, precedence::NONE}},
-            { token_type::STRING,        { std::bind(&compiler::string, this), std::nullopt, precedence::NONE } },
-            { token_type::NUMBER,        { std::bind(&compiler::number, this), std::nullopt, precedence::NONE } },
+            { token_type::EQUAL_EQUAL,   { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::EQUALITY } },
+            { token_type::GREATER,       { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::COMPARISON } },
+            { token_type::GREATER_EQUAL, { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::COMPARISON } },
+            { token_type::LESS,          { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::COMPARISON } },
+            { token_type::LESS_EQUAL,    { std::nullopt, std::bind(&compiler::binary, this, std::placeholders::_1), precedence::COMPARISON } },
+            { token_type::IDENTIFIER,    { std::bind(&compiler::variable, this, std::placeholders::_1), std::nullopt, precedence::NONE}},
+            { token_type::STRING,        { std::bind(&compiler::string, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
+            { token_type::NUMBER,        { std::bind(&compiler::number, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
             { token_type::AND,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::CLASS,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::ELSE,          { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::FALSE,         { std::bind(&compiler::literal, this), std::nullopt, precedence::NONE}},
+            { token_type::FALSE,         { std::bind(&compiler::literal, this, std::placeholders::_1), std::nullopt, precedence::NONE}},
             { token_type::FOR,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::FUN,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::IF,            { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::NIL,           { std::bind(&compiler::literal, this), std::nullopt, precedence::NONE } },
+            { token_type::NIL,           { std::bind(&compiler::literal, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
             { token_type::OR,            { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::PRINT,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::RETURN,        { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::SUPER,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::THIS,          { std::nullopt, std::nullopt, precedence::NONE } },
-            { token_type::TRUE,          { std::bind(&compiler::literal, this), std::nullopt, precedence::NONE } },
+            { token_type::TRUE,          { std::bind(&compiler::literal, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
             { token_type::VAR,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::WHILE,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::ERROR,         { std::nullopt, std::nullopt, precedence::NONE } },

@@ -44,6 +44,7 @@ namespace lox
         bool as_boolean() const;
         double as_number() const;
         std::shared_ptr<obj> as_object() const;
+        std::shared_ptr<obj_string> as_string() const;
 
         void print() const;
 

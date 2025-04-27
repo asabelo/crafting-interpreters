@@ -100,14 +100,14 @@ void lox::compiler::expression_statement()
     emit(op_code::OP_POP);
 }
 
-void lox::compiler::number()
+void lox::compiler::number(bool)
 {
     auto number = std::stod(std::string{ m_parser.previous().text });
 
     emit(value::from(number));
 }
 
-void lox::compiler::string()
+void lox::compiler::string(bool)
 {
     const auto text = m_parser.previous().text;
 
@@ -127,26 +127,35 @@ void lox::compiler::string()
     }
 }
 
-void lox::compiler::named_variable(token name)
+void lox::compiler::named_variable(token name, bool can_assign)
 {
     uint8_t arg = identifier_constant(name);
 
-    emit(op_code::OP_GET_GLOBAL, arg);
+    if (can_assign and m_parser.match(token_type::EQUAL))
+    {
+        expression();
+
+        emit(op_code::OP_SET_GLOBAL, arg);
+    }
+    else
+    {
+        emit(op_code::OP_GET_GLOBAL, arg);
+    }
 }
 
-void lox::compiler::variable()
+void lox::compiler::variable(bool can_assign)
 {
-    named_variable(m_parser.previous());
+    named_variable(m_parser.previous(), can_assign);
 }
 
-void lox::compiler::grouping()
+void lox::compiler::grouping(bool)
 {
     expression();
 
     m_parser.consume(token_type::RIGHT_PAREN, "Expect ')' after expression.");
 }
 
-void lox::compiler::unary()
+void lox::compiler::unary(bool)
 {
     auto operator_type = m_parser.previous().type;
 
@@ -160,7 +169,7 @@ void lox::compiler::unary()
     }
 }
 
-void lox::compiler::binary()
+void lox::compiler::binary(bool)
 {
     auto operator_type = m_parser.previous().type;
 
@@ -184,7 +193,7 @@ void lox::compiler::binary()
     }
 }
 
-void lox::compiler::literal()
+void lox::compiler::literal(bool)
 {
     switch (m_parser.previous().type)
     {
@@ -213,7 +222,8 @@ void lox::compiler::parse_precedence(precedence precedence)
         return;
     }
 
-    prefix_rule.value()();
+    bool can_assign = precedence <= precedence::ASSIGNMENT;
+    prefix_rule.value()(can_assign);
 
     while (precedence <= get_rule(m_parser.current().type).precedence)
     {
@@ -223,7 +233,12 @@ void lox::compiler::parse_precedence(precedence precedence)
         
         if (infix_rule.has_value())
         {
-            infix_rule.value()();
+            infix_rule.value()(can_assign);
+        }
+
+        if (can_assign and m_parser.match(token_type::EQUAL))
+        {
+            m_parser.error("Invalid assignment target.");
         }
     }
 }

@@ -90,6 +90,11 @@ std::shared_ptr<lox::obj> lox::value::as_object() const
     return std::get<std::shared_ptr<obj>>(m_inner);
 }
 
+std::shared_ptr<lox::obj_string> lox::value::as_string() const
+{
+    return static_pointer_cast<lox::obj_string>(as_object());
+}
+
 void lox::value::print() const
 {
     switch (m_type)
