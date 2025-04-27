@@ -22,6 +22,10 @@ namespace lox
 
         stack<value> m_stack;
 
+        std::unordered_map<std::string_view, std::shared_ptr<obj_string>> m_strings;
+
+        std::unordered_map<std::shared_ptr<obj_string>, value> m_globals;
+
         interpret_result run();
 
         void concatenate();

@@ -39,15 +39,17 @@ namespace lox
 
         obj_string(std::string_view text);
 
-        obj_string(const obj_string& other);
+        obj_string(const obj_string& other) = delete;
 
-        obj_string& operator=(obj_string other);
+        obj_string& operator=(obj_string other) = delete;
 
-        obj_string(obj_string&& other) noexcept;
+        obj_string(obj_string&& other) noexcept = delete;
 
-        obj_string& operator=(obj_string&& other) noexcept;
+        obj_string& operator=(obj_string&& other) noexcept = delete;
 
         std::size_t length() const;
+
+        char* chars() const;
 
         void concat(const obj_string& other);
 
@@ -66,7 +68,7 @@ namespace std
     {
         bool operator()(const lox::obj_string& lhs, const lox::obj_string& rhs) const
         {
-            return std::strcmp(lhs.m_chars.get(), rhs.m_chars.get());
+            return &lhs == &rhs;
         }
     };
 

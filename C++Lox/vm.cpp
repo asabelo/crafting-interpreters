@@ -9,12 +9,14 @@ lox::vm::vm(lox::chunk& chunk)
     : m_chunk{ chunk }
     , m_ip{ 0 }
     , m_stack{}
+    , m_strings{}
+    , m_globals{}
 {
 }
 
 lox::vm::~vm()
 {
-    // TODO :/
+    // TODO :/ ?
 
     auto* obj = vm::objects;
 
@@ -94,6 +96,31 @@ lox::interpret_result lox::vm::run()
                 m_stack.push(value::from(false));
                 break;
 
+            case op_code::OP_POP:
+                m_stack.pop();
+                break;
+
+            case op_code::OP_GET_GLOBAL:
+                {
+                    auto name = static_pointer_cast<obj_string>(read_constant().as_object());
+
+                    if (!m_globals.contains(name))
+                    {
+                        runtime_error("Undefined variable '{0}'.", name->chars());
+                        return interpret_result::RUNTIME_ERROR;
+                    }
+
+                    m_stack.push(m_globals[name]);
+                    break;
+                }
+
+            case op_code::OP_DEFINE_GLOBAL:
+                {
+                    auto name = static_pointer_cast<obj_string>(read_constant().as_object());
+                    m_globals[name] = m_stack.pop();
+                }
+                break;
+
             case op_code::OP_EQUAL:
                 {
                     const auto a = m_stack.pop();
@@ -153,9 +180,12 @@ lox::interpret_result lox::vm::run()
                 m_stack.push(value::from(-m_stack.pop().as_number()));
                 break;
 
-            case op_code::OP_RETURN:
+            case op_code::OP_PRINT:
                 m_stack.pop().print();
                 std::cout << '\n';
+                break;
+
+            case op_code::OP_RETURN:
                 return interpret_result::OK;
             }
         }
@@ -189,7 +219,7 @@ void lox::vm::runtime_error(const std::string_view format, const auto&&... param
 
 lox::interpret_result lox::vm::interpret(const std::string_view source)
 {
-    lox::compiler compiler{ source, m_chunk };
+    lox::compiler compiler{ source, m_chunk, m_strings };
 
     if (!compiler.compile())
     {

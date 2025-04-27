@@ -44,6 +44,20 @@ void lox::parser::consume(const token_type type, const std::string_view message)
     error_at_current(message);
 }
 
+bool lox::parser::check(const token_type type) const
+{
+    return m_current.type == type;
+}
+
+bool lox::parser::match(const token_type type)
+{
+    if (!check(type)) return false;
+
+    advance();
+
+    return true;
+}
+
 void lox::parser::error_at_current(const std::string_view message)
 {
     error_at(m_current, message);
@@ -83,4 +97,34 @@ void lox::parser::error_at(const token& token, const std::string_view message)
 bool lox::parser::had_error() const
 {
     return m_had_error;
+}
+
+void lox::parser::synchronize_if_panicking()
+{
+    if (!m_panic_mode) return;
+
+    m_panic_mode = false;
+
+    while (m_current.type != token_type::END_OF_FILE)
+    {
+        if (m_previous.type == token_type::SEMICOLON) return;
+
+        switch (m_current.type)
+        {
+        case token_type::CLASS:
+        case token_type::FUN:
+        case token_type::VAR:
+        case token_type::FOR:
+        case token_type::IF:
+        case token_type::WHILE:
+        case token_type::PRINT:
+        case token_type::RETURN:
+            return;
+
+        default:
+            ; // Do nothing.
+        }
+
+        advance();
+    }
 }

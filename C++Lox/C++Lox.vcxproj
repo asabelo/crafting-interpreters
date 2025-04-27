@@ -172,7 +172,6 @@
     <ClInclude Include="parser.hpp" />
     <ClInclude Include="scanner.hpp" />
     <ClInclude Include="stack.hpp" />
-    <ClInclude Include="table.hpp" />
     <ClInclude Include="value.hpp" />
     <ClInclude Include="vm.hpp" />
   </ItemGroup>

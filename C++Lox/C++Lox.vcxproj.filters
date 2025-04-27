@@ -77,9 +77,6 @@
     <ClInclude Include="object.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="table.hpp">
-      <Filter>Header files</Filter>
-    </ClInclude>
     <ClInclude Include="collection.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
