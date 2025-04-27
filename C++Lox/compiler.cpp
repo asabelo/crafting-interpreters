@@ -57,6 +57,8 @@ void lox::compiler::statement()
 void lox::compiler::declaration()
 {
     statement();
+
+    m_parser.synchronize_if_panicking();
 }
 
 void lox::compiler::expression()

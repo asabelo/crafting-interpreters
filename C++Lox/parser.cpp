@@ -98,3 +98,33 @@ bool lox::parser::had_error() const
 {
     return m_had_error;
 }
+
+void lox::parser::synchronize_if_panicking()
+{
+    if (!m_panic_mode) return;
+
+    m_panic_mode = false;
+
+    while (m_current.type != token_type::END_OF_FILE)
+    {
+        if (m_previous.type == token_type::SEMICOLON) return;
+
+        switch (m_current.type)
+        {
+        case token_type::CLASS:
+        case token_type::FUN:
+        case token_type::VAR:
+        case token_type::FOR:
+        case token_type::IF:
+        case token_type::WHILE:
+        case token_type::PRINT:
+        case token_type::RETURN:
+            return;
+
+        default:
+            ; // Do nothing.
+        }
+
+        advance();
+    }
+}

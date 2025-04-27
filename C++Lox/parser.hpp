@@ -38,5 +38,7 @@ namespace lox
         void error_at(const token& token, const std::string_view message);
 
         bool had_error() const;
+
+        void synchronize_if_panicking();
     };
 }
