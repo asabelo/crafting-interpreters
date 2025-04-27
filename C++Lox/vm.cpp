@@ -100,12 +100,24 @@ lox::interpret_result lox::vm::run()
                 m_stack.pop();
                 break;
 
+            case op_code::OP_GET_GLOBAL:
+                {
+                    auto name = static_pointer_cast<obj_string>(read_constant().as_object());
+
+                    if (!m_globals.contains(name))
+                    {
+                        runtime_error("Undefined variable '{0}'.", name->chars());
+                        return interpret_result::RUNTIME_ERROR;
+                    }
+
+                    m_stack.push(m_globals[name]);
+                    break;
+                }
+
             case op_code::OP_DEFINE_GLOBAL:
                 {
                     auto name = static_pointer_cast<obj_string>(read_constant().as_object());
-                    auto&& val = std::move(m_stack.peek());
-                    m_globals.add({ name, val });
-                    m_stack.pop();
+                    m_globals[name] = m_stack.pop();
                 }
                 break;
 

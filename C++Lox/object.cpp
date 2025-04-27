@@ -19,6 +19,11 @@ std::size_t lox::obj_string::length() const
     return m_length;
 }
 
+char* lox::obj_string::chars() const
+{
+    return m_chars.get();
+}
+
 void lox::obj_string::concat(const obj_string& other)
 {
     auto old_length = m_length;

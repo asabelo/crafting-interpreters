@@ -49,6 +49,8 @@ namespace lox
 
         std::size_t length() const;
 
+        char* chars() const;
+
         void concat(const obj_string& other);
 
         void print() const final;

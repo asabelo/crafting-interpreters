@@ -4,7 +4,6 @@
 #include "chunk.hpp"
 #include "common.hpp"
 #include "stack.hpp"
-#include "table.hpp"
 
 namespace lox
 {
@@ -23,9 +22,9 @@ namespace lox
 
         stack<value> m_stack;
 
-        string_table m_strings;
+        std::unordered_map<std::string_view, std::shared_ptr<obj_string>> m_strings;
 
-        value_table m_globals;
+        std::unordered_map<std::shared_ptr<obj_string>, value> m_globals;
 
         interpret_result run();
 

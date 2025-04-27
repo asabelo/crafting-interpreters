@@ -113,20 +113,30 @@ void lox::compiler::string()
 
     auto string_contents = text.substr(1, text.length() - 2);
 
-    const auto interned_string = m_strings.maybe_get(string_contents);
-
-    if (interned_string.has_value())
+    if (m_strings.contains(string_contents))
     {
-        emit(value::from(interned_string.value().value));
+        emit(value::from(m_strings.at(string_contents)));
     }
     else
     {
         const auto ptr = allocate_shared<obj_string>(string_contents);
 
-        m_strings.add({ string_contents, ptr });
+        m_strings[string_contents] = ptr;
 
         emit(value::from(ptr));
     }
+}
+
+void lox::compiler::named_variable(token name)
+{
+    uint8_t arg = identifier_constant(name);
+
+    emit(op_code::OP_GET_GLOBAL, arg);
+}
+
+void lox::compiler::variable()
+{
+    named_variable(m_parser.previous());
 }
 
 void lox::compiler::grouping()
@@ -220,6 +230,17 @@ void lox::compiler::parse_precedence(precedence precedence)
 
 uint8_t lox::compiler::identifier_constant(token name)
 {
+    if (m_strings.contains(name.text))
+    {
+        return make_constant(value::from(m_strings.at(name.text)));
+    }
+    else
+    {
+        auto blep = allocate_shared<obj_string>(name.text);
+        m_strings[name.text] = blep;
+        return make_constant(value::from(blep));
+    }
+
     return make_constant(value::from(allocate_shared<obj_string>(name.text)));
 }
 
@@ -235,7 +256,7 @@ void lox::compiler::define_variable(uint8_t global)
     emit(op_code::OP_DEFINE_GLOBAL, global);
 }
 
-lox::compiler::compiler(const std::string_view source, chunk& chunk, string_table& strings)
+lox::compiler::compiler(const std::string_view source, chunk& chunk, std::unordered_map<std::string_view, std::shared_ptr<obj_string>>& strings)
     : m_chunk{ chunk }
     , m_parser{ source }
     , m_strings{ strings }

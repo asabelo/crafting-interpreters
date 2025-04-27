@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <set>
 #include <unordered_map>
 
 #include "chunk.hpp"
@@ -8,7 +9,6 @@
 #include "object.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
-#include "table.hpp"
 
 namespace lox
 {
@@ -38,7 +38,7 @@ namespace lox
     {
         chunk& m_chunk;
         parser m_parser;
-        string_table& m_strings;
+        std::unordered_map<std::string_view, std::shared_ptr<obj_string>> m_strings;
 
         chunk& current_chunk();
 
@@ -63,6 +63,10 @@ namespace lox
         void number();
 
         void string();
+
+        void named_variable(token name);
+
+        void variable();
 
         void grouping();
 
@@ -103,7 +107,7 @@ namespace lox
             { token_type::GREATER_EQUAL, { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
             { token_type::LESS,          { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
             { token_type::LESS_EQUAL,    { std::nullopt, std::bind(&compiler::binary, this), precedence::COMPARISON } },
-            { token_type::IDENTIFIER,    { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::IDENTIFIER,    { std::bind(&compiler::variable, this), std::nullopt, precedence::NONE}},
             { token_type::STRING,        { std::bind(&compiler::string, this), std::nullopt, precedence::NONE } },
             { token_type::NUMBER,        { std::bind(&compiler::number, this), std::nullopt, precedence::NONE } },
             { token_type::AND,           { std::nullopt, std::nullopt, precedence::NONE } },
@@ -128,7 +132,7 @@ namespace lox
 
     public:
 
-        compiler(const std::string_view source, chunk& chunk, string_table& strings);
+        compiler(const std::string_view source, chunk& chunk, std::unordered_map<std::string_view, std::shared_ptr<obj_string>>& strings);
 
         bool compile();
     };
