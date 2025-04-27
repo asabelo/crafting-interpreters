@@ -57,58 +57,64 @@ namespace lox
 
     private:
 
-        array<std::optional<entry_t>, cap_t, cap_t> m_entries;
+        mutable array<std::optional<entry_t>, cap_t, cap_t> m_entries;
 
         template <typename TKey>
         std::optional<entry_t>& find(TKey key) const
         {
             TKeyHasher hash{};
 
-            const auto capacity = m_entries.capacity();
-            auto index = static_cast<cap_t>(hash(key)) % capacity;
-            
             TKeyEqualityChecker equals{};
 
             std::optional<entry_t>* earlier_tombstone = nullptr;
 
-            while (true) // It should always have at least one free spot
+            while (true)
             {
-                auto& entry = const_cast<std::optional<entry_t>&>(m_entries.get(index)); // bad
-                
-                if (!entry)
+                const auto capacity = m_entries.capacity();
+                auto index = static_cast<cap_t>(hash(key)) % capacity;
+
+                for (cap_t i = 0; i < capacity; ++i)
                 {
-                    // key not present, return empty bucket (first tombstone found or, if none, this entry)
-                    return earlier_tombstone ? *earlier_tombstone : entry;
-                }
-                else if (!entry->deleted() && equals(entry->key, key))
-                {
-                    // key present, entry not deleted
-                    return entry;
-                }
-                else if (entry->deleted() && !earlier_tombstone)
-                {
-                    // first tombstone (subsequent ones are skipped)
-                    earlier_tombstone = &entry;
+                    auto& entry = m_entries.get(index);
+
+                    if (!entry)
+                    {
+                        // key not present, return empty bucket (first tombstone found or, if none, this entry)
+                        return earlier_tombstone ? *earlier_tombstone : entry;
+                    }
+                    else if (!entry->deleted() && equals(entry->key, key))
+                    {
+                        // key present, entry not deleted
+                        return entry;
+                    }
+                    else if (entry->deleted() && !earlier_tombstone)
+                    {
+                        // first tombstone (subsequent ones are skipped)
+                        earlier_tombstone = &entry;
+                    }
+
+                    index = (index + 1) % capacity;
                 }
 
-                index = (index + 1) % capacity;
+                adjust_capacity(grow_capacity(capacity));
             }
         }
 
-        void adjust_capacity(cap_t new_capacity)
+        void adjust_capacity(cap_t new_capacity) const
         {
-            auto old_entries = decltype(m_entries) { new_capacity };
-            std::swap(m_entries, old_entries);
+            auto new_entries = decltype(m_entries) { new_capacity };
 
             for (cap_t i = 0, max_i = std::min(m_entries.capacity(), new_capacity); i < max_i; ++i)
             {
-                auto& entry = old_entries.get(i);
+                auto& entry = m_entries.get(i);
 
                 if (entry && !entry->deleted())
                 {
                     std::swap(entry, find(entry->key));
                 }
             }
+
+            m_entries = new_entries;
         }
 
     public:
@@ -193,4 +199,6 @@ namespace lox
     };
 
     using string_table = table<std::string_view, std::shared_ptr<obj_string>>;
+
+    using value_table = table<std::shared_ptr<obj_string>, value>;
 };

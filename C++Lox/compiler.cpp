@@ -56,7 +56,14 @@ void lox::compiler::statement()
 
 void lox::compiler::declaration()
 {
-    statement();
+    if (m_parser.match(token_type::VAR))
+    {
+        var_declaration();
+    }
+    else
+    {
+        statement();
+    }
 
     m_parser.synchronize_if_panicking();
 }
@@ -64,6 +71,24 @@ void lox::compiler::declaration()
 void lox::compiler::expression()
 {
     parse_precedence(precedence::ASSIGNMENT);
+}
+
+void lox::compiler::var_declaration()
+{
+    auto global = parse_variable("Expect variable name.");
+
+    if (m_parser.match(token_type::EQUAL))
+    {
+        expression();
+    }
+    else
+    {
+        emit(op_code::OP_NIL);
+    }
+
+    m_parser.consume(token_type::SEMICOLON, "Expect ';' after variable declaration.");
+
+    define_variable(global);
 }
 
 void lox::compiler::expression_statement()
@@ -191,6 +216,23 @@ void lox::compiler::parse_precedence(precedence precedence)
             infix_rule.value()();
         }
     }
+}
+
+uint8_t lox::compiler::identifier_constant(token name)
+{
+    return make_constant(value::from(allocate_shared<obj_string>(name.text)));
+}
+
+uint8_t lox::compiler::parse_variable(std::string_view message)
+{
+    m_parser.consume(token_type::IDENTIFIER, message);
+
+    return identifier_constant(m_parser.previous());
+}
+
+void lox::compiler::define_variable(uint8_t global)
+{
+    emit(op_code::OP_DEFINE_GLOBAL, global);
 }
 
 lox::compiler::compiler(const std::string_view source, chunk& chunk, string_table& strings)

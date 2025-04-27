@@ -53,9 +53,12 @@ namespace lox
         {
             m_count    = other.m_count;
             m_capacity = other.m_capacity;
-            m_elements = resize_array(m_elements, 0, other.m_capacity);
+            resize_array(m_elements, static_cast<cap_t>(0), other.m_capacity);
 
-            std::copy(other.m_elements, other.m_elements + other.m_count, m_elements);
+            for (cap_t i = 0; i < other.m_capacity; ++i)
+            {
+                m_elements[i] = other.m_elements[i];
+            }
         }
 
         ///

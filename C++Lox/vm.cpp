@@ -10,6 +10,7 @@ lox::vm::vm(lox::chunk& chunk)
     , m_ip{ 0 }
     , m_stack{}
     , m_strings{}
+    , m_globals{}
 {
 }
 
@@ -97,6 +98,15 @@ lox::interpret_result lox::vm::run()
 
             case op_code::OP_POP:
                 m_stack.pop();
+                break;
+
+            case op_code::OP_DEFINE_GLOBAL:
+                {
+                    auto name = static_pointer_cast<obj_string>(read_constant().as_object());
+                    auto&& val = std::move(m_stack.peek());
+                    m_globals.add({ name, val });
+                    m_stack.pop();
+                }
                 break;
 
             case op_code::OP_EQUAL:

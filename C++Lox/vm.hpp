@@ -25,6 +25,8 @@ namespace lox
 
         string_table m_strings;
 
+        value_table m_globals;
+
         interpret_result run();
 
         void concatenate();

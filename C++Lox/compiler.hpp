@@ -56,6 +56,8 @@ namespace lox
 
         void expression();
 
+        void var_declaration();
+
         void expression_statement();
 
         void number();
@@ -73,6 +75,12 @@ namespace lox
         const parse_rule& get_rule(token_type type) const;
 
         void parse_precedence(precedence precedence);
+
+        uint8_t identifier_constant(token name);
+
+        uint8_t parse_variable(std::string_view error_message);
+
+        void define_variable(uint8_t global);
 
         const std::unordered_map<token_type, parse_rule> rules // sorry
         {
