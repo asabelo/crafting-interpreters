@@ -161,9 +161,7 @@
     <ClCompile Include="vm.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="array.hpp" />
     <ClInclude Include="chunk.hpp" />
-    <ClInclude Include="collection.hpp" />
     <ClInclude Include="common.hpp" />
     <ClInclude Include="compiler.hpp" />
     <ClInclude Include="debug.hpp" />
@@ -171,7 +169,6 @@
     <ClInclude Include="object.hpp" />
     <ClInclude Include="parser.hpp" />
     <ClInclude Include="scanner.hpp" />
-    <ClInclude Include="stack.hpp" />
     <ClInclude Include="value.hpp" />
     <ClInclude Include="vm.hpp" />
   </ItemGroup>

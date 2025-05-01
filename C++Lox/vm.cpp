@@ -33,24 +33,32 @@ lox::interpret_result lox::vm::run()
 {
     const auto read_byte = [this]()
     {
-        return m_chunk.get(m_ip++);
+        return m_chunk.at(m_ip++);
     };
 
     const auto read_constant = [this, &read_byte]()
     {
-        return m_chunk.constants().get(read_byte().op);
+        return m_chunk.constants().at(read_byte().op);
     };
 
     const auto binary_op = [this](auto operation)
     {
-        if (!m_stack.peek(0).is_number() || !m_stack.peek(1).is_number())
+        const auto b = m_stack.top();
+        m_stack.pop();
+
+        const auto a = m_stack.top();
+        m_stack.pop();
+
+        if (not b.is_number() or not a.is_number())
         {
+            m_stack.push(a);
+            m_stack.push(b);
+
             runtime_error("Operands must be numbers.");
             throw interpret_result::RUNTIME_ERROR;
         }
-        const auto b = m_stack.pop().as_number();
-        const auto a = m_stack.pop().as_number();
-        m_stack.push(value::from(operation(a, b)));
+
+        m_stack.push(value::from(operation(a.as_number(), b.as_number())));
     };
 
 #ifdef _DEBUG
@@ -62,11 +70,11 @@ lox::interpret_result lox::vm::run()
 #ifdef _DEBUG
         std::cout << "          ";
 
-        for (lox::stack<value>::idx_t i = 0; i < m_stack.count(); ++i)
+        for (std::stack<value>::size_type i = 0; i < m_stack.size(); ++i)
         {
             std::cout << "[ ";
 
-            m_stack.get(i).print();
+            m_stack._Get_container().at(i).print(); // Debug only sooo
 
             std::cout << " ]";
         }
@@ -104,7 +112,7 @@ lox::interpret_result lox::vm::run()
                 {
                     auto name = read_constant().as_string();
 
-                    if (!m_globals.contains(name))
+                    if (not m_globals.contains(name))
                     {
                         runtime_error("Undefined variable '{0}'.", name->chars());
                         return interpret_result::RUNTIME_ERROR;
@@ -117,7 +125,8 @@ lox::interpret_result lox::vm::run()
             case op_code::OP_DEFINE_GLOBAL:
                 {
                     auto name = read_constant().as_string();
-                    m_globals[name] = m_stack.pop();
+                    m_globals[name] = m_stack.top();
+                    m_stack.pop();
                 }
                 break;
 
@@ -131,14 +140,18 @@ lox::interpret_result lox::vm::run()
                         return interpret_result::RUNTIME_ERROR;
                     }
 
-                    m_globals[name] = m_stack.peek();
+                    m_globals[name] = m_stack.top();
                 }
                 break;
 
             case op_code::OP_EQUAL:
                 {
-                    const auto a = m_stack.pop();
-                    const auto b = m_stack.pop();
+                    const auto b = m_stack.top();
+                    m_stack.pop();
+
+                    const auto a = m_stack.top();
+                    m_stack.pop();
+
                     m_stack.push(value::from(std::equal_to<value>{}(a, b)));
                 }
                 break;
@@ -152,19 +165,35 @@ lox::interpret_result lox::vm::run()
                 break;
 
             case op_code::OP_ADD:
-                if (m_stack.peek(0).is_string() && m_stack.peek(1).is_string())
                 {
-                    concatenate();
-                }
-                else if (m_stack.peek(0).is_number() && m_stack.peek(1).is_number())
-                {
-                    binary_op(std::plus{});
-                }
-                else
-                {
-                    runtime_error("Operands must be two numbers or two strings.");
+                    const auto b = m_stack.top();
+                    m_stack.pop();
 
-                    return interpret_result::RUNTIME_ERROR;
+                    const auto a = m_stack.top();
+                    m_stack.pop();
+
+                    if (b.is_string() and a.is_string())
+                    {
+                        m_stack.push(a);
+                        m_stack.push(b);
+
+                        concatenate();
+                    }
+                    else if (b.is_number() and a.is_number())
+                    {
+                        m_stack.push(a);
+                        m_stack.push(b);
+
+                        binary_op(std::plus{});
+                    }
+                    else
+                    {
+                        m_stack.push(a);
+                        m_stack.push(b);
+
+                        runtime_error("Operands must be two numbers or two strings.");
+                        return interpret_result::RUNTIME_ERROR;
+                    }
                 }
                 break;
 
@@ -181,21 +210,31 @@ lox::interpret_result lox::vm::run()
                 break;
 
             case op_code::OP_NOT:
-                m_stack.push(value::from(m_stack.pop().is_falsey()));
+                {
+                    const auto a = m_stack.top();
+                    m_stack.pop();
+                    m_stack.push(value::from(a.is_falsey()));
+                }
                 break;
 
             case op_code::OP_NEGATE:
-                if (!m_stack.peek().is_number())
                 {
-                    runtime_error("Operand must be a number.");
+                    const auto a = m_stack.top();
 
-                    return interpret_result::RUNTIME_ERROR;
+                    if (not a.is_number())
+                    {
+                        runtime_error("Operand must be a number.");
+                        return interpret_result::RUNTIME_ERROR;
+                    }
+
+                    m_stack.pop();
+                    m_stack.push(value::from(-a.as_number()));
                 }
-                m_stack.push(value::from(-m_stack.pop().as_number()));
                 break;
 
             case op_code::OP_PRINT:
-                m_stack.pop().print();
+                m_stack.top().print();
+                m_stack.pop();
                 std::cout << '\n';
                 break;
 
@@ -212,8 +251,11 @@ lox::interpret_result lox::vm::run()
 
 void lox::vm::concatenate()
 {
-    auto b = m_stack.pop().as_string();
-    auto a = m_stack.pop().as_string();
+    const auto b = m_stack.top().as_string();
+    m_stack.pop();
+
+    const auto a = m_stack.top().as_string();
+    m_stack.pop();
 
     a->concat(*b);
 
@@ -224,11 +266,11 @@ void lox::vm::runtime_error(const std::string_view format, const auto&&... param
 {
     std::cerr << std::vformat(format, std::make_format_args(params...)) << '\n';
 
-    auto instruction = m_ip - m_chunk.count() - 1;
-    auto line = m_chunk.get(instruction).line;
+    auto instruction = m_ip - m_chunk.size() - 1;
+    auto line = m_chunk.at(instruction).line;
     std::cerr << std::format("[line {}] in script\n", line);
 
-    m_stack.reset();
+    while (not m_stack.empty()) m_stack.pop();
 }
 
 lox::interpret_result lox::vm::interpret(const std::string_view source)

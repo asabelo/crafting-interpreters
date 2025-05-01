@@ -12,7 +12,7 @@ lox::chunk& lox::compiler::current_chunk()
 
 void lox::compiler::emit(uint8_t byte)
 {
-    current_chunk().add({ byte, m_parser.previous().line });
+    current_chunk().push_back({ byte, m_parser.previous().line });
 }
 
 void lox::compiler::emit(uint8_t first_byte, uint8_t second_byte)
@@ -30,7 +30,10 @@ uint8_t lox::compiler::make_constant(value value)
 {
     // TODO have array throw when adding at max index
 
-    return current_chunk().constants().add(value);
+    auto& constants = current_chunk().constants();
+
+    constants.push_back(value);
+    return static_cast<uint8_t>(constants.size() - 1);
 }
 
 void lox::compiler::print_statement()
@@ -119,7 +122,7 @@ void lox::compiler::string(bool)
     }
     else
     {
-        const auto ptr = allocate_shared<obj_string>(string_contents);
+        const auto ptr = std::make_shared<obj_string>(string_contents);
 
         m_strings[string_contents] = ptr;
 
@@ -251,12 +254,12 @@ uint8_t lox::compiler::identifier_constant(token name)
     }
     else
     {
-        auto blep = allocate_shared<obj_string>(name.text);
+        auto blep = std::make_shared<obj_string>(name.text);
         m_strings[name.text] = blep;
         return make_constant(value::from(blep));
     }
 
-    return make_constant(value::from(allocate_shared<obj_string>(name.text)));
+    return make_constant(value::from(std::make_shared<obj_string>(name.text)));
 }
 
 uint8_t lox::compiler::parse_variable(std::string_view message)

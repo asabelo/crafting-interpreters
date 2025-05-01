@@ -56,13 +56,7 @@
     <ClInclude Include="value.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="array.hpp">
-      <Filter>Header files</Filter>
-    </ClInclude>
     <ClInclude Include="vm.hpp">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="stack.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="compiler.hpp">
@@ -75,9 +69,6 @@
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="object.hpp">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="collection.hpp">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>

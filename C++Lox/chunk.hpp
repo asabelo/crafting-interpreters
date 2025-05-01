@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "array.hpp"
-#include "collection.hpp"
+#include <vector>
+
 #include "common.hpp"
 #include "value.hpp"
 
@@ -38,16 +38,16 @@ namespace lox
         int line;
     };
 
-    class chunk : public array<op_info>
+    class chunk : public std::vector<op_info>
     {
-        value_array m_constants = {};
+        std::vector<value> m_constants = {};
 
     public:
 
         ///
         /// Returns a reference to the array of constants of this chunk.
         ///
-        value_array& constants()
+        std::vector<value>& constants()
         {
             return m_constants;
         }
@@ -55,7 +55,7 @@ namespace lox
         ///
         /// Returns a const reference to the array of constants of this chunk.
         ///
-        const value_array& constants() const
+        const std::vector<value>& constants() const
         {
             return m_constants;
         }

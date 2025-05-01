@@ -6,39 +6,39 @@ void lox::disassemble_chunk(const chunk& chunk, const std::string& name)
 {
     std::cout << std::format("== {} ==\n", name);
 
-    for (chunk::idx_t offset = 0; offset < chunk.count();)
+    for (chunk::size_type offset = 0; offset < chunk.size();)
     {
         offset = disassemble_instruction(chunk, offset);
     }
 }
 
-static lox::chunk::idx_t constant_instruction(const std::string& name, const lox::chunk& chunk, lox::chunk::idx_t offset)
+static lox::chunk::size_type constant_instruction(const std::string& name, const lox::chunk& chunk, lox::chunk::size_type offset)
 {
-    auto& constant_info = chunk.get(offset + 1);
+    auto& constant_info = chunk.at(offset + 1);
     
     std::cout << std::format("{:16} {:4} '", name, constant_info.op);
     
-    chunk.constants().get(constant_info.op).print();
+    chunk.constants().at(constant_info.op).print();
     
     std::cout << "'\n";
 
     return offset + 2;
 }
 
-static lox::chunk::idx_t simple_instruction(const std::string& name, lox::chunk::idx_t offset)
+static lox::chunk::size_type simple_instruction(const std::string& name, lox::chunk::size_type offset)
 {
     std::cout << name << '\n';
 
     return offset + 1;
 }
 
-lox::chunk::idx_t lox::disassemble_instruction(const chunk& chunk, chunk::idx_t offset)
+lox::chunk::size_type lox::disassemble_instruction(const chunk& chunk, chunk::size_type offset)
 {
     std::cout << std::format("{:0>4}", static_cast<int>(offset));
     
-    const auto& op_info = chunk.get(offset);
+    const auto& op_info = chunk.at(offset);
 
-    if (offset > 0 && op_info.line == chunk.get(offset - 1).line)
+    if (offset > 0 && op_info.line == chunk.at(offset - 1).line)
     {
         std::cout << "   | ";
     }

@@ -3,7 +3,6 @@
 
 #include <variant>
 
-#include "array.hpp"
 #include "common.hpp"
 #include "object.hpp"
 
@@ -50,8 +49,6 @@ namespace lox
 
         template <typename T> friend struct std::equal_to;
     };
-
-    using value_array = array<value, uint8_t>;
 }
 
 namespace std
