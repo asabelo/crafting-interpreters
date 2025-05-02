@@ -32,6 +32,15 @@ static lox::chunk::size_type simple_instruction(const std::string& name, lox::ch
     return offset + 1;
 }
 
+static lox::chunk::size_type byte_instruction(const std::string& name, const lox::chunk& chunk, lox::chunk::size_type offset)
+{
+    const auto& slot = chunk.at(offset + 1);
+
+    std::cout << std::format("{:16} {:>4}", name, slot.op) << '\n';
+
+    return offset + 2;
+}
+
 lox::chunk::size_type lox::disassemble_instruction(const chunk& chunk, chunk::size_type offset)
 {
     std::cout << std::format("{:0>4}", static_cast<int>(offset));
@@ -65,6 +74,12 @@ lox::chunk::size_type lox::disassemble_instruction(const chunk& chunk, chunk::si
 
     case op_code::OP_POP:
         return simple_instruction("OP_POP", offset);
+
+    case op_code::OP_GET_LOCAL:
+        return byte_instruction("OP_GET_LOCAL", chunk, offset);
+
+    case op_code::OP_SET_LOCAL:
+        return byte_instruction("OP_SET_LOCAL", chunk, offset);
 
     case op_code::OP_GET_GLOBAL:
         return constant_instruction("OP_GET_GLOBAL", chunk, offset);

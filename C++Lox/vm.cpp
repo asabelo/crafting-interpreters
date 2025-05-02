@@ -43,22 +43,22 @@ lox::interpret_result lox::vm::run()
 
     const auto binary_op = [this](auto operation)
     {
-        const auto b = m_stack.top();
-        m_stack.pop();
+        const auto b = m_stack.back();
+        m_stack.pop_back();
 
-        const auto a = m_stack.top();
-        m_stack.pop();
+        const auto a = m_stack.back();
+        m_stack.pop_back();
 
         if (not b.is_number() or not a.is_number())
         {
-            m_stack.push(a);
-            m_stack.push(b);
+            m_stack.push_back(a);
+            m_stack.push_back(b);
 
             runtime_error("Operands must be numbers.");
             throw interpret_result::RUNTIME_ERROR;
         }
 
-        m_stack.push(value::from(operation(a.as_number(), b.as_number())));
+        m_stack.push_back(value::from(operation(a.as_number(), b.as_number())));
     };
 
 #ifdef _DEBUG
@@ -70,11 +70,11 @@ lox::interpret_result lox::vm::run()
 #ifdef _DEBUG
         std::cout << "          ";
 
-        for (std::stack<value>::size_type i = 0; i < m_stack.size(); ++i)
+        for (std::vector<value>::size_type i = 0; i < m_stack.size(); ++i)
         {
             std::cout << "[ ";
 
-            m_stack._Get_container().at(i).print(); // Debug only sooo
+            m_stack.at(i).print();
 
             std::cout << " ]";
         }
@@ -89,23 +89,37 @@ lox::interpret_result lox::vm::run()
             switch (read_byte().op)
             {
             case op_code::OP_CONSTANT:
-                m_stack.push(read_constant());
+                m_stack.push_back(read_constant());
                 break;
 
             case op_code::OP_NIL:
-                m_stack.push(value::nil());
+                m_stack.push_back(value::nil());
                 break;
 
             case op_code::OP_TRUE:
-                m_stack.push(value::from(true));
+                m_stack.push_back(value::from(true));
                 break;
 
             case op_code::OP_FALSE:
-                m_stack.push(value::from(false));
+                m_stack.push_back(value::from(false));
                 break;
 
             case op_code::OP_POP:
-                m_stack.pop();
+                m_stack.pop_back();
+                break;
+
+            case op_code::OP_GET_LOCAL:
+                {
+                    auto slot = read_byte();
+                    m_stack.push_back(m_stack.at(slot.op));
+                }
+                break;
+
+            case OP_SET_LOCAL:
+                {
+                    auto slot = read_byte();
+                    m_stack.at(slot.op) = m_stack.back();
+                }
                 break;
 
             case op_code::OP_GET_GLOBAL:
@@ -118,15 +132,15 @@ lox::interpret_result lox::vm::run()
                         return interpret_result::RUNTIME_ERROR;
                     }
 
-                    m_stack.push(m_globals[name]);
+                    m_stack.push_back(m_globals[name]);
                 }
                 break;
 
             case op_code::OP_DEFINE_GLOBAL:
                 {
                     auto name = read_constant().as_string();
-                    m_globals[name] = m_stack.top();
-                    m_stack.pop();
+                    m_globals[name] = m_stack.back();
+                    m_stack.pop_back();
                 }
                 break;
 
@@ -140,19 +154,19 @@ lox::interpret_result lox::vm::run()
                         return interpret_result::RUNTIME_ERROR;
                     }
 
-                    m_globals[name] = m_stack.top();
+                    m_globals[name] = m_stack.back();
                 }
                 break;
 
             case op_code::OP_EQUAL:
                 {
-                    const auto b = m_stack.top();
-                    m_stack.pop();
+                    const auto b = m_stack.back();
+                    m_stack.pop_back();
 
-                    const auto a = m_stack.top();
-                    m_stack.pop();
+                    const auto a = m_stack.back();
+                    m_stack.pop_back();
 
-                    m_stack.push(value::from(std::equal_to<value>{}(a, b)));
+                    m_stack.push_back(value::from(std::equal_to<value>{}(a, b)));
                 }
                 break;
 
@@ -166,30 +180,30 @@ lox::interpret_result lox::vm::run()
 
             case op_code::OP_ADD:
                 {
-                    const auto b = m_stack.top();
-                    m_stack.pop();
+                    const auto b = m_stack.back();
+                    m_stack.pop_back();
 
-                    const auto a = m_stack.top();
-                    m_stack.pop();
+                    const auto a = m_stack.back();
+                    m_stack.pop_back();
 
                     if (b.is_string() and a.is_string())
                     {
-                        m_stack.push(a);
-                        m_stack.push(b);
+                        m_stack.push_back(a);
+                        m_stack.push_back(b);
 
                         concatenate();
                     }
                     else if (b.is_number() and a.is_number())
                     {
-                        m_stack.push(a);
-                        m_stack.push(b);
+                        m_stack.push_back(a);
+                        m_stack.push_back(b);
 
                         binary_op(std::plus{});
                     }
                     else
                     {
-                        m_stack.push(a);
-                        m_stack.push(b);
+                        m_stack.push_back(a);
+                        m_stack.push_back(b);
 
                         runtime_error("Operands must be two numbers or two strings.");
                         return interpret_result::RUNTIME_ERROR;
@@ -211,15 +225,15 @@ lox::interpret_result lox::vm::run()
 
             case op_code::OP_NOT:
                 {
-                    const auto a = m_stack.top();
-                    m_stack.pop();
-                    m_stack.push(value::from(a.is_falsey()));
+                    const auto a = m_stack.back();
+                    m_stack.pop_back();
+                    m_stack.push_back(value::from(a.is_falsey()));
                 }
                 break;
 
             case op_code::OP_NEGATE:
                 {
-                    const auto a = m_stack.top();
+                    const auto a = m_stack.back();
 
                     if (not a.is_number())
                     {
@@ -227,14 +241,14 @@ lox::interpret_result lox::vm::run()
                         return interpret_result::RUNTIME_ERROR;
                     }
 
-                    m_stack.pop();
-                    m_stack.push(value::from(-a.as_number()));
+                    m_stack.pop_back();
+                    m_stack.push_back(value::from(-a.as_number()));
                 }
                 break;
 
             case op_code::OP_PRINT:
-                m_stack.top().print();
-                m_stack.pop();
+                m_stack.back().print();
+                m_stack.pop_back();
                 std::cout << '\n';
                 break;
 
@@ -251,26 +265,26 @@ lox::interpret_result lox::vm::run()
 
 void lox::vm::concatenate()
 {
-    const auto b = m_stack.top().as_string();
-    m_stack.pop();
+    const auto b = m_stack.back().as_string();
+    m_stack.pop_back();
 
-    const auto a = m_stack.top().as_string();
-    m_stack.pop();
+    const auto a = m_stack.back().as_string();
+    m_stack.pop_back();
 
     a->concat(*b);
 
-    m_stack.push(value::from(a));
+    m_stack.push_back(value::from(a));
 }
 
 void lox::vm::runtime_error(const std::string_view format, const auto&&... params)
 {
     std::cerr << std::vformat(format, std::make_format_args(params...)) << '\n';
 
-    auto instruction = m_ip - m_chunk.size() - 1;
+    auto instruction = m_chunk.size() - m_ip - 1;
     auto line = m_chunk.at(instruction).line;
     std::cerr << std::format("[line {}] in script\n", line);
 
-    while (not m_stack.empty()) m_stack.pop();
+    while (not m_stack.empty()) m_stack.pop_back();
 }
 
 lox::interpret_result lox::vm::interpret(const std::string_view source)

@@ -12,7 +12,7 @@ lox::chunk& lox::compiler::current_chunk()
 
 void lox::compiler::emit(uint8_t byte)
 {
-    current_chunk().push_back({ byte, m_parser.previous().line });
+    current_chunk().emplace_back(byte, m_parser.previous().line);
 }
 
 void lox::compiler::emit(uint8_t first_byte, uint8_t second_byte)
@@ -51,6 +51,12 @@ void lox::compiler::statement()
     {
         print_statement();
     }
+    else if (m_parser.match(token_type::LEFT_BRACE))
+    {
+        begin_scope();
+        block();
+        end_scope();
+    }
     else
     {
         expression_statement();
@@ -74,6 +80,16 @@ void lox::compiler::declaration()
 void lox::compiler::expression()
 {
     parse_precedence(precedence::ASSIGNMENT);
+}
+
+void lox::compiler::block()
+{
+    while (not m_parser.check(token_type::RIGHT_BRACE) and not m_parser.check(token_type::END_OF_FILE))
+    {
+        declaration();
+    }
+
+    m_parser.consume(token_type::RIGHT_BRACE, "Expect '}' after block.");
 }
 
 void lox::compiler::var_declaration()
@@ -132,17 +148,32 @@ void lox::compiler::string(bool)
 
 void lox::compiler::named_variable(token name, bool can_assign)
 {
-    uint8_t arg = identifier_constant(name);
+    uint8_t get, set, arg;
+
+    auto local = resolve_local(name);
+
+    if (local != -1)
+    {
+        arg = static_cast<uint8_t>(local);
+        get = op_code::OP_GET_LOCAL;
+        set = op_code::OP_SET_LOCAL;
+    }
+    else
+    {
+        arg = identifier_constant(name);
+        get = op_code::OP_GET_GLOBAL;
+        set = op_code::OP_SET_GLOBAL;
+    }
 
     if (can_assign and m_parser.match(token_type::EQUAL))
     {
         expression();
 
-        emit(op_code::OP_SET_GLOBAL, arg);
+        emit(set, arg);
     }
     else
     {
-        emit(op_code::OP_GET_GLOBAL, arg);
+        emit(get, arg);
     }
 }
 
@@ -207,6 +238,23 @@ void lox::compiler::literal(bool)
     }
 }
 
+void lox::compiler::begin_scope()
+{
+    ++scope_depth;
+}
+
+void lox::compiler::end_scope()
+{
+    --scope_depth;
+
+    while (m_locals.size() > 0 and m_locals.at(m_locals.size() - 1).depth > scope_depth)
+    {
+        emit(op_code::OP_POP);
+
+        m_locals.pop_back(); // ?
+    }
+}
+
 const lox::parse_rule& lox::compiler::get_rule(token_type type) const
 {
     return rules.at(type);
@@ -254,23 +302,112 @@ uint8_t lox::compiler::identifier_constant(token name)
     }
     else
     {
-        auto blep = std::make_shared<obj_string>(name.text);
-        m_strings[name.text] = blep;
-        return make_constant(value::from(blep));
+        auto new_identifier = std::make_shared<obj_string>(name.text);
+
+        m_strings[name.text] = new_identifier;
+
+        return make_constant(value::from(new_identifier));
     }
 
     return make_constant(value::from(std::make_shared<obj_string>(name.text)));
+}
+
+bool lox::compiler::identifiers_equal(const token& a, const token& b)
+{
+    return a.text == b.text;
+}
+
+int lox::compiler::resolve_local(const token& name)
+{
+    if (auto size = m_locals.size(); size > 0)
+    {
+        const auto crbegin = m_locals.crbegin();
+
+        for (auto crit = crbegin; crit != m_locals.crend(); ++crit)
+        {
+            const auto& local = *crit;
+
+            if (identifiers_equal(name, local.name))
+            {
+                if (local.depth == -1)
+                {
+                    m_parser.error("Can't read local variable in its own initializer.");
+                }
+
+                const auto local_index = std::distance(crbegin, crit);
+
+                return static_cast<int>(local_index);
+            }
+        }
+    }
+
+    return -1;
+}
+
+void lox::compiler::add_local(token name)
+{
+    if (m_locals.size() > std::numeric_limits<uint8_t>::max())
+    {
+        m_parser.error("Too many local variables in function.");
+
+        return;
+    }
+
+    m_locals.emplace_back(name, -1);
+}
+
+void lox::compiler::declare_variable()
+{
+    if (scope_depth == 0) return;
+
+    auto name = m_parser.previous();
+
+    if (auto size = m_locals.size(); size > 0)
+    {
+        for (auto crit = m_locals.crbegin(); crit != m_locals.crend(); ++crit)
+        {
+            const auto& local = *crit;
+
+            if (local.depth != -1 and local.depth < scope_depth)
+            {
+                break;
+            }
+
+            if (identifiers_equal(name, local.name))
+            {
+                m_parser.error("Already a variable with this name in this scope.");
+            }
+        }
+    }
+
+    add_local(name);
 }
 
 uint8_t lox::compiler::parse_variable(std::string_view message)
 {
     m_parser.consume(token_type::IDENTIFIER, message);
 
+    declare_variable();
+
+    if (scope_depth > 0) return 0;
+
     return identifier_constant(m_parser.previous());
+}
+
+void lox::compiler::mark_initialized()
+{
+    m_locals.back().depth = scope_depth;
 }
 
 void lox::compiler::define_variable(uint8_t global)
 {
+    if (scope_depth > 0)
+    {
+        mark_initialized();
+
+        return;
+    }
+
     emit(op_code::OP_DEFINE_GLOBAL, global);
 }
 
@@ -278,6 +415,8 @@ lox::compiler::compiler(const std::string_view source, chunk& chunk, std::unorde
     : m_chunk{ chunk }
     , m_parser{ source }
     , m_strings{ strings }
+    , m_locals{}
+    , scope_depth{ 0 }
 {
 }
 

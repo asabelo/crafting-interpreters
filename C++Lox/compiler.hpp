@@ -2,6 +2,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <vector>
 
 #include "chunk.hpp"
 #include "common.hpp"
@@ -33,11 +34,19 @@ namespace lox
         precedence precedence                           = precedence::NONE;
     };
 
+    struct local
+    {
+        token name;
+        int depth;
+    };
+
     class compiler
     {
         chunk& m_chunk;
         parser m_parser;
         std::unordered_map<std::string_view, std::shared_ptr<obj_string>> m_strings;
+        std::vector<local> m_locals;
+        int scope_depth;
 
         chunk& current_chunk();
 
@@ -54,6 +63,8 @@ namespace lox
         void declaration();
 
         void expression();
+
+        void block();
 
         void var_declaration();
 
@@ -75,13 +86,27 @@ namespace lox
 
         void literal(bool);
 
+        void begin_scope();
+
+        void end_scope();
+
         const parse_rule& get_rule(token_type type) const;
 
         void parse_precedence(precedence precedence);
 
         uint8_t identifier_constant(token name);
 
+        bool identifiers_equal(const token& a, const token& b);
+
+        int resolve_local(const token& name);
+
+        void add_local(token name);
+
+        void declare_variable();
+
         uint8_t parse_variable(std::string_view error_message);
+
+        void mark_initialized();
 
         void define_variable(uint8_t global);
 

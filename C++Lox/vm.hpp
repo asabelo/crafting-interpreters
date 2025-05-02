@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <stack>
+#include <vector>
 
 #include "chunk.hpp"
 #include "common.hpp"
@@ -21,7 +21,7 @@ namespace lox
 
         chunk::size_type m_ip;
 
-        std::stack<value> m_stack;
+        std::vector<value> m_stack;
 
         std::unordered_map<std::string_view, std::shared_ptr<obj_string>> m_strings;
 
