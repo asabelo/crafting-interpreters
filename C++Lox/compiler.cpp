@@ -26,6 +26,14 @@ void lox::compiler::emit(value constant)
     emit(op_code::OP_CONSTANT, make_constant(constant));
 }
 
+std::vector<lox::op_info>::size_type lox::compiler::emit_jump(op_code jump)
+{
+    emit(jump);
+    emit(0xff);
+    emit(0xff);
+    return m_chunk.size() - 2;
+}
+
 uint8_t lox::compiler::make_constant(value value)
 {
     // TODO have array throw when adding at max index
@@ -34,6 +42,20 @@ uint8_t lox::compiler::make_constant(value value)
 
     constants.push_back(value);
     return static_cast<uint8_t>(constants.size() - 1);
+}
+
+void lox::compiler::patch_jump(std::vector<lox::op_info>::size_type offset)
+{
+    // -2 to adjust for the bytecode for the jump offset itself.
+    auto jump = m_chunk.size() - offset - 2;
+
+    if (jump > std::numeric_limits<uint16_t>::max())
+    {
+        m_parser.error("Too much code to jump over.");
+    }
+
+    m_chunk.at(offset    ).op = static_cast<uint8_t>(0xff & (jump >> 8));
+    m_chunk.at(offset + 1).op = static_cast<uint8_t>(0xff &  jump      );
 }
 
 void lox::compiler::print_statement()
@@ -50,6 +72,10 @@ void lox::compiler::statement()
     if (m_parser.match(token_type::PRINT))
     {
         print_statement();
+    }
+    else if (m_parser.match(token_type::IF))
+    {
+        if_statement();
     }
     else if (m_parser.match(token_type::LEFT_BRACE))
     {
@@ -117,6 +143,27 @@ void lox::compiler::expression_statement()
     m_parser.consume(token_type::SEMICOLON, "Expect ';' after expression.");
 
     emit(op_code::OP_POP);
+}
+
+void lox::compiler::if_statement()
+{
+    m_parser.consume(token_type::LEFT_PAREN, "Expect '(' after 'if'.");
+    expression();
+    m_parser.consume(token_type::RIGHT_PAREN, "Expect ')' after condition.");
+
+    auto then_jump = emit_jump(op_code::OP_JUMP_IF_FALSE);
+    emit(op_code::OP_POP);
+    statement();
+
+    auto else_jump = emit_jump(op_code::OP_JUMP);
+    patch_jump(then_jump);
+    emit(op_code::OP_POP);
+
+    if (m_parser.match(token_type::ELSE))
+    {
+        statement();
+        patch_jump(else_jump);
+    }
 }
 
 void lox::compiler::number(bool)

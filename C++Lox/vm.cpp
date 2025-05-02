@@ -36,6 +36,11 @@ lox::interpret_result lox::vm::run()
         return m_chunk.at(m_ip++);
     };
 
+    const auto read_short = [this]()
+    {
+        return static_cast<uint16_t>((m_chunk.at(m_ip++).op << 8) | m_chunk.at(m_ip++).op);
+    };
+
     const auto read_constant = [this, &read_byte]()
     {
         return m_chunk.constants().at(read_byte().op);
@@ -250,6 +255,24 @@ lox::interpret_result lox::vm::run()
                 m_stack.back().print();
                 m_stack.pop_back();
                 std::cout << '\n';
+                break;
+
+            case op_code::OP_JUMP:
+                {
+                    auto offset = static_cast<std::vector<op_info>::size_type>(read_short());
+                    m_ip += offset;
+                }
+                break;
+
+            case op_code::OP_JUMP_IF_FALSE:
+                {
+                    auto offset = static_cast<std::vector<op_info>::size_type>(read_short());
+
+                    if (m_stack.back().is_falsey())
+                    {
+                        m_ip += offset;
+                    }
+                }
                 break;
 
             case op_code::OP_RETURN:
