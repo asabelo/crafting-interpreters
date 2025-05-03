@@ -275,6 +275,13 @@ lox::interpret_result lox::vm::run()
                 }
                 break;
 
+            case op_code::OP_LOOP:
+                {
+                    auto offset = static_cast<std::vector<op_info>::size_type>(read_short());
+                    m_ip -= offset;
+                }
+                break;
+
             case op_code::OP_RETURN:
                 return interpret_result::OK;
             }

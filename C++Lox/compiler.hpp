@@ -53,12 +53,15 @@ namespace lox
         void emit(uint8_t byte);
         void emit(uint8_t first_byte, uint8_t second_byte);
         void emit(value constant);
+        void emit_loop(std::vector<op_info>::size_type loopStart);
         std::vector<lox::op_info>::size_type emit_jump(op_code jump);
 
         uint8_t make_constant(value value);
         void patch_jump(std::vector<lox::op_info>::size_type offset);
 
         void print_statement();
+
+        void while_statement();
 
         void statement();
 

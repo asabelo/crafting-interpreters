@@ -26,6 +26,21 @@ void lox::compiler::emit(value constant)
     emit(op_code::OP_CONSTANT, make_constant(constant));
 }
 
+void lox::compiler::emit_loop(std::vector<op_info>::size_type loopStart)
+{
+    emit(op_code::OP_LOOP);
+
+    auto offset = m_chunk.size() - loopStart + 2;
+
+    if (offset > std::numeric_limits<uint16_t>::max())
+    {
+        m_parser.error("Loop body too large.");
+    }
+
+    emit((offset >> 8) & 0xff);
+    emit(offset & 0xff);
+}
+
 std::vector<lox::op_info>::size_type lox::compiler::emit_jump(op_code jump)
 {
     emit(jump);
@@ -67,6 +82,23 @@ void lox::compiler::print_statement()
     emit(op_code::OP_PRINT);
 }
 
+void lox::compiler::while_statement()
+{
+    auto loop_start = m_chunk.size();
+
+    m_parser.consume(token_type::LEFT_PAREN, "Expect '(' after 'while'.");
+    expression();
+    m_parser.consume(token_type::RIGHT_PAREN, "Expect ')' after condition.");
+
+    auto exit_jump = emit_jump(op_code::OP_JUMP_IF_FALSE);
+    emit(op_code::OP_POP);
+    statement();
+    emit_loop(loop_start);
+
+    patch_jump(exit_jump);
+    emit(op_code::OP_POP);
+}
+
 void lox::compiler::statement()
 {
     if (m_parser.match(token_type::PRINT))
@@ -76,6 +108,10 @@ void lox::compiler::statement()
     else if (m_parser.match(token_type::IF))
     {
         if_statement();
+    }
+    else if (m_parser.match(token_type::WHILE))
+    {
+        while_statement();
     }
     else if (m_parser.match(token_type::LEFT_BRACE))
     {

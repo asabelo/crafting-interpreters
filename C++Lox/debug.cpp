@@ -41,11 +41,11 @@ static lox::chunk::size_type byte_instruction(const std::string& name, const lox
     return offset + 2;
 }
 
-static lox::chunk::size_type jump_instruction(const std::string& name, lox::chunk::size_type sign, const lox::chunk& chunk, lox::chunk::size_type offset)
+static lox::chunk::size_type jump_instruction(const std::string& name, int sign, const lox::chunk& chunk, lox::chunk::size_type offset)
 {
     auto jump = static_cast<uint16_t>((chunk.at(offset + 1).op << 8) | chunk.at(offset + 2).op);
 
-    std::cout << std::format("{:16} {:>4} -> {}", name, offset, offset + 3 + sign * jump) << '\n';
+    std::cout << std::format("{:16} {:>4} -> {}", name, offset, sign == 1 ? offset + 3 + jump : offset + 3 - jump) << '\n';
 
     return offset + 3;
 }
@@ -134,6 +134,9 @@ lox::chunk::size_type lox::disassemble_instruction(const chunk& chunk, chunk::si
 
     case op_code::OP_JUMP_IF_FALSE:
         return jump_instruction("OP_JUMP_IF_FALSE", 1, chunk, offset);
+
+    case op_code::OP_LOOP:
+        return jump_instruction("OP_LOOP", -1, chunk, offset);
 
     case op_code::OP_RETURN:
         return simple_instruction("OP_RETURN", offset);
