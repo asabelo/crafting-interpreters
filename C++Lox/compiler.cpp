@@ -105,6 +105,10 @@ void lox::compiler::statement()
     {
         print_statement();
     }
+    else if (m_parser.match(token_type::FOR))
+    {
+        for_statement();
+    }
     else if (m_parser.match(token_type::IF))
     {
         if_statement();
@@ -179,6 +183,63 @@ void lox::compiler::expression_statement()
     m_parser.consume(token_type::SEMICOLON, "Expect ';' after expression.");
 
     emit(op_code::OP_POP);
+}
+
+void lox::compiler::for_statement()
+{
+    begin_scope();
+
+    m_parser.consume(token_type::LEFT_PAREN, "Expect '(' after 'for'.");
+    if (m_parser.match(token_type::SEMICOLON))
+    {
+        // No initializer.
+    }
+    else if (m_parser.match(token_type::VAR))
+    {
+        var_declaration();
+    }
+    else
+    {
+        expression_statement();
+    }
+
+    auto loop_start = m_chunk.size();
+    std::vector<lox::op_info>::size_type exit_jump = 0;
+    bool has_exit_jump = false;
+    if (not m_parser.match(token_type::SEMICOLON))
+    {
+        expression();
+        m_parser.consume(token_type::SEMICOLON, "Expect ';' after loop condition.");
+
+        // Jump out of the loop if the condition is false.
+        exit_jump = emit_jump(op_code::OP_JUMP_IF_FALSE);
+        has_exit_jump = true;
+        emit(op_code::OP_POP); // Condition.
+    }
+
+    if (not m_parser.match(token_type::RIGHT_PAREN))
+    {
+        auto body_jump = emit_jump(op_code::OP_JUMP);
+        auto increment_start = m_chunk.size();
+        expression();
+        emit(op_code::OP_POP);
+        m_parser.consume(token_type::RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        emit_loop(loop_start);
+        loop_start = increment_start;
+        patch_jump(body_jump);
+    }
+
+    statement();
+    emit_loop(loop_start);
+
+    if (has_exit_jump)
+    {
+        patch_jump(exit_jump);
+        emit(op_code::OP_POP); // Condition.
+    }
+
+    end_scope();
 }
 
 void lox::compiler::if_statement()

@@ -74,6 +74,8 @@ namespace lox
         void var_declaration();
 
         void expression_statement();
+
+        void for_statement();
         
         void if_statement();
 
