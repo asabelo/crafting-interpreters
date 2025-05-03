@@ -458,6 +458,28 @@ void lox::compiler::define_variable(uint8_t global)
     emit(op_code::OP_DEFINE_GLOBAL, global);
 }
 
+void lox::compiler::and_(bool)
+{
+    auto end_jump = emit_jump(op_code::OP_JUMP_IF_FALSE);
+
+    emit(OP_POP);
+    parse_precedence(precedence::AND);
+
+    patch_jump(end_jump);
+}
+
+void lox::compiler::or_(bool)
+{
+    auto else_jump = emit_jump(op_code::OP_JUMP_IF_FALSE);
+    auto end_jump = emit_jump(op_code::OP_JUMP);
+
+    patch_jump(else_jump);
+    emit(op_code::OP_POP);
+
+    parse_precedence(precedence::OR);
+    patch_jump(end_jump);
+}
+
 lox::compiler::compiler(const std::string_view source, chunk& chunk, std::unordered_map<std::string_view, std::shared_ptr<obj_string>>& strings)
     : m_chunk{ chunk }
     , m_parser{ source }

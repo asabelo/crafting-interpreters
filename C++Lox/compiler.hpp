@@ -114,6 +114,10 @@ namespace lox
 
         void define_variable(uint8_t global);
 
+        void and_(bool);
+
+        void or_(bool);
+
         const std::unordered_map<token_type, parse_rule> rules // sorry
         {
             { token_type::LEFT_PAREN,    { std::bind(&compiler::grouping, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
@@ -138,7 +142,7 @@ namespace lox
             { token_type::IDENTIFIER,    { std::bind(&compiler::variable, this, std::placeholders::_1), std::nullopt, precedence::NONE}},
             { token_type::STRING,        { std::bind(&compiler::string, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
             { token_type::NUMBER,        { std::bind(&compiler::number, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
-            { token_type::AND,           { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::AND,           { std::nullopt, std::bind(&compiler::and_, this, std::placeholders::_1), precedence::AND}},
             { token_type::CLASS,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::ELSE,          { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::FALSE,         { std::bind(&compiler::literal, this, std::placeholders::_1), std::nullopt, precedence::NONE}},
@@ -146,7 +150,7 @@ namespace lox
             { token_type::FUN,           { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::IF,            { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::NIL,           { std::bind(&compiler::literal, this, std::placeholders::_1), std::nullopt, precedence::NONE } },
-            { token_type::OR,            { std::nullopt, std::nullopt, precedence::NONE } },
+            { token_type::OR,            { std::nullopt, std::bind(&compiler::or_, this, std::placeholders::_1), precedence::OR } },
             { token_type::PRINT,         { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::RETURN,        { std::nullopt, std::nullopt, precedence::NONE } },
             { token_type::SUPER,         { std::nullopt, std::nullopt, precedence::NONE } },
