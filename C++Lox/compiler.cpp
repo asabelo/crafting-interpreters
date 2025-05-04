@@ -465,9 +465,7 @@ int lox::compiler::resolve_local(const token& name)
 {
     if (auto size = m_locals.size(); size > 0)
     {
-        const auto crbegin = m_locals.crbegin();
-
-        for (auto crit = crbegin; crit != m_locals.crend(); ++crit)
+        for (auto crit = m_locals.crbegin(); crit != m_locals.crend(); ++crit)
         {
             const auto& local = *crit;
 
@@ -478,7 +476,7 @@ int lox::compiler::resolve_local(const token& name)
                     m_parser.error("Can't read local variable in its own initializer.");
                 }
 
-                const auto local_index = std::distance(crbegin, crit);
+                const auto local_index = std::distance(m_locals.cbegin(), crit.base()) - 1;
 
                 return static_cast<int>(local_index);
             }

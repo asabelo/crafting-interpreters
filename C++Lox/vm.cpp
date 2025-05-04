@@ -120,7 +120,7 @@ lox::interpret_result lox::vm::run()
                 }
                 break;
 
-            case OP_SET_LOCAL:
+            case op_code::OP_SET_LOCAL:
                 {
                     auto slot = read_byte();
                     m_stack.at(slot.op) = m_stack.back();
